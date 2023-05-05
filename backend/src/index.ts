@@ -22,7 +22,8 @@ import fetch from "node-fetch";
 
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
-import { GraphQLContext } from "./util/types";
+import { GraphQLContext, Session } from "./util/types";
+import { PrismaClient } from "@prisma/client";
 
 export const getServerSession = async (cookie: string) => {
 	const res = await fetch(`${process.env.CLIENT_ORIGIN}/api/auth/session`, {
@@ -45,6 +46,8 @@ const main = async () => {
 		origin: process.env.CLIENT_ORIGIN,
 		credentials: true,
 	};
+
+	const prisma = new PrismaClient();
 
 	const wsServer = new WebSocketServer({
 		server: httpServer,
@@ -79,9 +82,12 @@ const main = async () => {
 		bodyParser.json(),
 		expressMiddleware(server, {
 			context: async ({ req, res }): Promise<GraphQLContext> => {
-				const session = await getServerSession(req.headers.cookie);
-				//@ts-ignore
-				return { session };
+				const session = (await getServerSession(req.headers.cookie)) as Session;
+
+				return {
+					session,
+					prisma,
+				};
 			},
 		})
 	);
