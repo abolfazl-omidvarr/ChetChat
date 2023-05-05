@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { NextPage, NextPageContext } from "next";
 import { Box } from "@chakra-ui/react";
 import { Session } from "next-auth";
+import { useRouter } from "next/navigation";
 
 import { Chat, Auth } from "@/components";
 import { useCallback } from "react";
@@ -13,11 +14,13 @@ const inter = Inter({ subsets: ["latin"] });
 const Home: NextPage = () => {
 	const { data: session } = useSession();
 
-	const reloadSession = useCallback(() => {}, []);
+	const router = useRouter();
+
+	const reloadSession = useCallback(() => router.refresh(), [router]);
 
 	return (
 		<Box>
-			{session?.user.userName ? (
+			{session?.user.username ? (
 				<Chat />
 			) : (
 				<Auth session={session} reloadSession={reloadSession} />

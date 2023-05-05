@@ -45,9 +45,8 @@ const resolvers = {
 					},
 				});
 
-
 				return { success: true };
-			} catch (error) {
+			} catch (error: any) {
 				console.log("create username failed: ", error);
 				return {
 					error: error?.message,
