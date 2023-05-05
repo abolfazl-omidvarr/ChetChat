@@ -3,7 +3,14 @@ const resolvers = {
 		searchUser: () => {},
 	},
 	Mutation: {
-		createUsername: () => {},
+		createUsername: (
+			_parent: any,
+			args: { username: string },
+			context: any
+		) => {
+			const { username } = args;
+			console.log(context);
+		},
 	},
 	// Subscription: {},
 };

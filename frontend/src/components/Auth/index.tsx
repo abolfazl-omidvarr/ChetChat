@@ -1,8 +1,12 @@
+import { useMutation } from "@apollo/client";
 import { Button, Center, Input, Stack, Text } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { signIn } from "next-auth/react";
 import { useCallback, useState } from "react";
 import { FcGoogle } from "react-icons/fc";
+
+import userOperations from "@/graphql/operations/user";
+import { CreateUsernameData, CreateUsernameVariable } from "@/util/types";
 
 interface IAuthProps {
 	session: Session | null;
@@ -10,15 +14,25 @@ interface IAuthProps {
 }
 
 const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
-	const [userName, setUserName] = useState("");
+	const [username, setUsername] = useState("");
+
+	const [createUsername, { data, loading, error }] = useMutation<
+		CreateUsernameData,
+		CreateUsernameVariable
+	>(userOperations.Mutations.createUsername);
+
+	console.log(data, loading, error);
 
 	const onSubmit = useCallback(async () => {
+		if (!username) return;
 		try {
-			////// create the userName
+			await createUsername({ variables: { username } });
 		} catch (error) {
 			console.log("auth onSubmit error", error);
 		}
-	}, [userName]);
+	}, [username]);
+
+	console.log(session);
 
 	return (
 		<Center className="h-screen">
@@ -28,8 +42,8 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
 						<Text className="text-3xl">Create a Username</Text>
 						<Input
 							placeholder="Enter the username"
-							value={userName}
-							onChange={(e) => setUserName(e.target.value)}
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
 						/>
 						<Button onClick={onSubmit}>Save</Button>
 					</>

@@ -4,7 +4,6 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 
 import { createServer } from "http";
 import { PubSub } from "graphql-subscriptions";
-import gql from "graphql-tag";
 
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
@@ -16,56 +15,36 @@ import bodyParser from "body-parser";
 
 import express from "express";
 
-const pubSub = new PubSub();
-const app = express();
-const httpServer = createServer(app);
+import * as dotenv from "dotenv";
+
+import { getSession } from "next-auth/react";
+import fetch from "node-fetch";
 
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
+import { GraphQLContext } from "./util/types";
 
-interface createNewEventInput {
-	title: string;
-	description: string;
-}
-
-// const typeDefs = gql`
-// 	type NewsEvent {
-// 		title: String
-// 		description: String
-// 	}
-// 	type Query {
-// 		placeholder: Boolean
-// 	}
-// 	type Mutation {
-// 		createNewEvent(title: String, description: String): NewsEvent
-// 	}
-// 	type Subscription {
-// 		newsFeed: NewsEvent
-// 	}
-// `;
-
-// const resolvers = {
-// 	Query: {
-// 		placeholder: () => true,
-// 	},
-// 	Mutation: {
-// 		createNewEvent: (_parent: any, args: createNewEventInput) => {
-// 			console.log(args);
-
-// 			pubSub.publish("EVENT_CREATED", { newsFeed: args });
-
-// 			return args;
-// 		},
-// 	},
-// 	Subscription: {
-// 		newsFeed: {
-// 			subscribe: () => pubSub.asyncIterator(["EVENT_CREATED"]),
-// 		},
-// 	},
-// };
+export const getServerSession = async (cookie: string) => {
+	const res = await fetch(`${process.env.CLIENT_ORIGIN}/api/auth/session`, {
+		headers: { cookie: cookie },
+	});
+	const session = await res.json();
+	return session;
+};
 
 const main = async () => {
+	const pubSub = new PubSub();
+	const app = express();
+	const httpServer = createServer(app);
+
+	dotenv.config();
+
 	const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+	const corsOption = {
+		origin: process.env.CLIENT_ORIGIN,
+		credentials: true,
+	};
 
 	const wsServer = new WebSocketServer({
 		server: httpServer,
@@ -76,6 +55,8 @@ const main = async () => {
 
 	const server = new ApolloServer({
 		schema,
+		csrfPrevention: true,
+		cache: "bounded",
 		plugins: [
 			ApolloServerPluginDrainHttpServer({ httpServer }),
 			{
@@ -94,9 +75,15 @@ const main = async () => {
 
 	app.use(
 		"/graphql",
-		cors<cors.CorsRequest>(),
+		cors<cors.CorsRequest>(corsOption),
 		bodyParser.json(),
-		expressMiddleware(server)
+		expressMiddleware(server, {
+			context: async ({ req, res }): Promise<GraphQLContext> => {
+				const session = await getServerSession(req.headers.cookie);
+				//@ts-ignore
+				return { session };
+			},
+		})
 	);
 
 	httpServer.listen(4000, () => {
