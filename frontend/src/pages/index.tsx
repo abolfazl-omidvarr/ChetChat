@@ -14,7 +14,7 @@ const inter = Inter({ subsets: ["latin"] });
 const Home: NextPage = () => {
 	const { data: session } = useSession();
 
-	console.log("session:", session);
+	console.log(session);
 
 	const router = useRouter();
 

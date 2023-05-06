@@ -10,41 +10,34 @@ import userOperations from "@/graphql/operations/user";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
-interface AccountCreateProps {}
+interface AccountCreateProps {
+	login: boolean;
+	setLogin: (state: boolean) => void;
+}
 
-const AccountCreate: React.FC<AccountCreateProps> = () => {
+const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 	const router = useRouter();
-	const [login, setLogin] = useState(false);
 	const [createUser, { loading, data, error }] = useMutation<
 		CreateUserData,
 		CreateUserVariable
 	>(userOperations.Mutations.createUser);
 	//handle form for create account
 	const {
-		register: registerCreateAccountForm,
-		handleSubmit: handleSubmitCreateAccountForm,
-		formState: { errors: errorCreateAccountForm },
+		register: register,
+		handleSubmit: handleSubmit,
+		formState: { errors },
 	} = useForm<FieldValues>({
-		defaultValues: { username: "", emailForCreate: "", passwordForCreate: "" },
-	});
-
-	//handle form form Log in
-	const {
-		register: registerLogInForm,
-		handleSubmit: handleSubmitLogInForm,
-		formState: { errors: errorLogInForm },
-	} = useForm<FieldValues>({
-		defaultValues: { userMail: "", passwordForLogin: "" },
+		defaultValues: { username: "", email: "", password: "" },
 	});
 
 	const onCreateAccountSubmit: SubmitHandler<FieldValues> = useCallback(
 		async (inputs) => {
-			const { username, passwordForCreate, emailForCreate } = inputs;
+			const { username, password, email } = inputs;
 			const { data } = await createUser({
 				variables: {
 					username,
-					password: passwordForCreate,
-					email: emailForCreate,
+					password,
+					email,
 				},
 			});
 
@@ -58,22 +51,6 @@ const AccountCreate: React.FC<AccountCreateProps> = () => {
 				setLogin(true);
 				toast.success("Account successfully created  🚀\nNow you may log in");
 			}
-		},
-		[]
-	);
-	const onLogInSubmit: SubmitHandler<FieldValues> = useCallback(
-		async (inputs) => {
-			signIn("credentials", {
-				...inputs,
-				redirect: false,
-			}).then((callback) => {
-				if (callback?.ok) {
-					toast.success("Logged in");
-				}
-				if (callback?.error) {
-					toast.error(callback.error);
-				}
-			});
 		},
 		[]
 	);
@@ -91,36 +68,39 @@ const AccountCreate: React.FC<AccountCreateProps> = () => {
 	disabled:opacity-70
 	disabled:cursor-not-allowed
 	${
-		errorLogInForm[id] || errorCreateAccountForm[id]
+		errors[id]
 			? "border-rose-500 focus:border-rose-500"
 			: "border-neutral-600 focus:border-neutral-400"
 	}
 `;
 
-	const createForm = (
+	return (
 		<>
 			<Text className="text-3xl">ChetChat Messenger</Text>
 			<Text className="text-xl">Create an account</Text>
 			<input
+				type="email"
 				id="email"
-				{...registerCreateAccountForm("emailForCreate", { required: true })}
+				{...register("email", { required: true })}
 				placeholder="Email"
-				className={inputClass("emailForCreate")}
+				className={inputClass("email")}
 			/>
 			<input
 				id="username"
-				{...registerCreateAccountForm("username", { required: true })}
+				{...register("username", { required: true })}
 				placeholder="Username"
 				className={inputClass("username")}
 			/>
 			<input
+				type="password"
 				id="password"
-				{...registerCreateAccountForm("passwordForCreate", { required: true })}
+				{...register("password", { required: true })}
 				placeholder="Password"
-				className={inputClass("passwordForCreate")}
+				className={inputClass("password")}
 			/>
 			<Button
-				onClick={() => handleSubmitCreateAccountForm(onCreateAccountSubmit)()}
+				width={"full"}
+				onClick={() => handleSubmit(onCreateAccountSubmit)()}
 			>
 				Create
 			</Button>
@@ -142,41 +122,6 @@ const AccountCreate: React.FC<AccountCreateProps> = () => {
 			</Text>
 		</>
 	);
-
-	const loginForm = (
-		<>
-			<Text className="text-3xl">ChetChat Messenger</Text>
-			<Text className="text-lg pb-2">Log in to your account</Text>
-
-			<input
-				id="userMail"
-				{...registerLogInForm("userMail", { required: true })}
-				placeholder="Email or Username"
-				className={inputClass("userMail")}
-			/>
-			<input
-				id="password"
-				{...registerLogInForm("passwordForLogin", { required: true })}
-				placeholder="Password"
-				className={inputClass("passwordForLogin")}
-			/>
-			<Button onClick={() => handleSubmitLogInForm(onLogInSubmit)()}>
-				Log In
-			</Button>
-
-			<Text className="text-sm py-2">
-				Don't have an account?
-				<span
-					onClick={() => setLogin(false)}
-					className="hover:underline ml-1 cursor-pointer"
-				>
-					Sign Up
-				</span>
-			</Text>
-		</>
-	);
-
-	return <>{login ? loginForm : createForm}</>;
 };
 
 export default AccountCreate;

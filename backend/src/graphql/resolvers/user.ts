@@ -12,6 +12,7 @@ const resolvers = {
 			context: GraphQLContext
 		): Promise<createUsernameResponse> => {
 			const { username } = args;
+			console.log(args);
 			const { prisma, session } = context;
 
 			if (!session?.user) {
@@ -21,6 +22,7 @@ const resolvers = {
 			}
 
 			const { id } = session.user;
+			console.log(session);
 
 			try {
 				//check uniqueness of username in database

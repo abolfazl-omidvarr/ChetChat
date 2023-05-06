@@ -7,38 +7,35 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import { useMutation } from "@apollo/client";
 import { CreateUserVariable, CreateUsernameData } from "@/util/types";
 import userOperations from "@/graphql/operations/user";
+import { toast } from "react-hot-toast";
 
-type LogInProps = {};
+interface LogInProps {
+	login: boolean;
+	setLogin: (state: boolean) => void;
+}
 
-const LogIn: React.FC<LogInProps> = () => {
-
+const LogIn: React.FC<LogInProps> = ({ login, setLogin }) => {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors: errors },
 	} = useForm<FieldValues>({
-		defaultValues: { username: "", email: "", password: "" },
+		defaultValues: { userMail: "", password: "" },
 	});
 
-	// const onSubmit: SubmitHandler<FieldValues> = (data) => {
-	// 	setIsLoading(true);
-
-	// 	signIn("credentials", {
-	// 		...data,
-	// 		redirect: false,
-	// 	}).then((callback) => {
-	// 		setIsLoading(false);
-
-	// 		if (callback?.ok) {
-	// 			toast.success("Logged in");
-	// 			router.refresh();
-	// 			loginModal.onClose();
-	// 		}
-	// 		if (callback?.error) {
-	// 			toast.error(callback.error);
-	// 		}
-	// 	});
-	// };
+	const onSubmit: SubmitHandler<FieldValues> = useCallback(async (inputs) => {
+		signIn("credentials", {
+			...inputs,
+			redirect: false,
+		}).then((callback) => {
+			if (callback?.ok) {
+				toast.success("Logged in");
+			}
+			if (callback?.error) {
+				toast.error(callback.error);
+			}
+		});
+	}, []);
 
 	const inputClass = (id: string) => `
 	peer
@@ -62,27 +59,33 @@ const LogIn: React.FC<LogInProps> = () => {
 	return (
 		<>
 			<Text className="text-3xl">ChetChat Messenger</Text>
-			<Text className="text-xl">Create an account</Text>
+			<Text className="text-lg pb-2">Log in to your account</Text>
+
 			<input
-				id="email"
-				{...register("email", { required: true })}
-				placeholder="Email"
-				className={inputClass("email")}
+				id="userMail"
+				type="text"
+				{...register("userMail", { required: true })}
+				placeholder="Email or Username"
+				className={inputClass("userMail")}
 			/>
 			<input
-				id="username"
-				{...register("username", { required: true })}
-				placeholder="Username"
-				className={inputClass("username")}
+				id="password"
+				type="password"
+				{...register("password", { required: true })}
+				placeholder="Password"
+				className={inputClass("password")}
 			/>
-			{/* <Button onClick={() => handleSubmit(onsubmit)()}>Create</Button>
-			<Text className="text-4xl py-5">OR</Text>
-			<Button
-				onClick={() => signIn("google")}
-				leftIcon={<FcGoogle size={25} />}
-			>
-				Continue with Google
-			</Button> */}
+			<Button onClick={() => handleSubmit(onSubmit)()}>Log In</Button>
+
+			<Text className="text-sm py-2">
+				Don't have an account?
+				<span
+					onClick={() => setLogin(false)}
+					className="hover:underline ml-1 cursor-pointer"
+				>
+					Sign Up
+				</span>
+			</Text>
 		</>
 	);
 };
