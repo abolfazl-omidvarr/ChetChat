@@ -14,6 +14,8 @@ const inter = Inter({ subsets: ["latin"] });
 const Home: NextPage = () => {
 	const { data: session } = useSession();
 
+	console.log("session:", session);
+
 	const router = useRouter();
 
 	const reloadSession = useCallback(() => router.refresh(), [router]);
@@ -21,7 +23,7 @@ const Home: NextPage = () => {
 	return (
 		<Box>
 			{session?.user.username ? (
-				<Chat />
+				<Chat session={session} />
 			) : (
 				<Auth session={session} reloadSession={reloadSession} />
 			)}

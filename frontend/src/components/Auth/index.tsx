@@ -17,6 +17,7 @@ interface IAuthProps {
 
 const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
 	const [username, setUsername] = useState("");
+	const [logIn, setLogIn] = useState(false);
 
 	const [createUsername, { loading }] = useMutation<
 		CreateUsernameData,
@@ -48,7 +49,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
 
 	return (
 		<Center className="h-screen">
-			<Stack className="items-center gap-5">
+			<Stack className="items-center">
 				{session ? (
 					<UserNameCreate
 						isLoading={loading}

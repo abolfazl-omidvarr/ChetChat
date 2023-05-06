@@ -16,7 +16,7 @@ export default function App({
 			<SessionProvider session={session}>
 				<ChakraProvider theme={theme}>
 					<Component {...pageProps} />
-					<Toaster />
+					<Toaster toastOptions={{ className: "text-center" }} />
 				</ChakraProvider>
 			</SessionProvider>
 		</ApolloProvider>

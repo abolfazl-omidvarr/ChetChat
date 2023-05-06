@@ -22,6 +22,7 @@ export interface User {
 	userName?: string | null;
 	name: string;
 	emailVerified?: boolean | null;
+	hashedPassword?: string | null;
 }
 
 export interface createUsernameResponse {
