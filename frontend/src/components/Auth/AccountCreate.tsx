@@ -1,9 +1,14 @@
 "use client";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button, Text, Box } from "@chakra-ui/react";
 import { signIn } from "next-auth/react";
 import { FcGoogle, FcSalesPerformance } from "react-icons/fc";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
+import {
+	FieldErrors,
+	FieldValues,
+	SubmitHandler,
+	useForm,
+} from "react-hook-form";
 import { useMutation } from "@apollo/client";
 import { CreateUserVariable, CreateUserData } from "@/util/types";
 import userOperations from "@/graphql/operations/user";
@@ -14,6 +19,20 @@ interface AccountCreateProps {
 	login: boolean;
 	setLogin: (state: boolean) => void;
 }
+interface FormErrorProps {
+	criteria: boolean;
+	text: string;
+}
+
+const FormError: React.FC<FormErrorProps> = ({ criteria, text }) => (
+	<p
+		style={{ margin: 0 }}
+		className={`text-left w-full text-red-500 text-xs overflow-hidden transition-[height] duration-200 
+		${criteria ? "h-4" : "h-0"}`}
+	>
+		{text}
+	</p>
+);
 
 const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 	const router = useRouter();
@@ -23,8 +42,8 @@ const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 	>(userOperations.Mutations.createUser);
 	//handle form for create account
 	const {
-		register: register,
-		handleSubmit: handleSubmit,
+		register,
+		handleSubmit,
 		formState: { errors },
 	} = useForm<FieldValues>({
 		defaultValues: { username: "", email: "", password: "" },
@@ -81,9 +100,13 @@ const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 			<input
 				type="email"
 				id="email"
-				{...register("email", { required: true })}
+				{...register("email", { required: true, pattern: /^\S+@\S+\.\S+$/ })}
 				placeholder="Email"
 				className={inputClass("email")}
+			/>
+			<FormError
+				criteria={!!errors.email}
+				text="Email is required and must be a valid address."
 			/>
 			<input
 				id="username"
@@ -91,14 +114,25 @@ const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 				placeholder="Username"
 				className={inputClass("username")}
 			/>
+			<FormError criteria={!!errors.username} text="Username is required." />
+
 			<input
 				type="password"
 				id="password"
-				{...register("password", { required: true })}
+				{...register("password", {
+					required: true,
+					pattern: /^(?=.*[A-Za-z])[A-Za-z\d]{6,}$/,
+				})}
 				placeholder="Password"
 				className={inputClass("password")}
 			/>
+			<FormError
+				criteria={!!errors.password}
+				text="Password must contain at least 6 characters and one letter."
+			/>
 			<Button
+				isLoading={loading}
+				isDisabled={loading}
 				width={"full"}
 				onClick={() => handleSubmit(onCreateAccountSubmit)()}
 			>
@@ -106,6 +140,7 @@ const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 			</Button>
 			<Text className="text-4xl py-2">OR</Text>
 			<Button
+				isDisabled={loading}
 				onClick={() => signIn("google")}
 				leftIcon={<FcGoogle size={25} />}
 			>
@@ -114,7 +149,10 @@ const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 			<Text className="text-sm py-2">
 				Already have an account?
 				<span
-					onClick={() => setLogin(true)}
+					onClick={() => {
+						if (loading) return;
+						setLogin(true);
+					}}
 					className="hover:underline ml-1 cursor-pointer"
 				>
 					Log in

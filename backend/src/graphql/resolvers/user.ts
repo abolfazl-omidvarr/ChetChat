@@ -1,9 +1,66 @@
+import { User } from "@prisma/client";
 import { GraphQLContext, createUsernameResponse } from "../../util/types";
 import bcrypt from "bcrypt";
+import { GraphQLError } from "graphql";
 
 const resolvers = {
 	Query: {
-		searchUser: () => {},
+		searchUsers: async (
+			_parent: any,
+			args: { username: string },
+			context: GraphQLContext
+		): Promise<Array<User>> => {
+			const { username: searchedUsername } = args;
+			const { session, prisma } = context;
+
+			if (!session?.user) {
+				throw new GraphQLError(
+					"You are not authorized to perform this action.",
+					{
+						extensions: {
+							code: "UNAUTHENTICATED",
+						},
+					}
+				);
+			}
+
+			const {
+				//@ts-ignore
+				user: { username: myUsername },
+			} = session;
+
+			try {
+				const foundUsersByUsername = await prisma.user.findMany({
+					where: {
+						username: {
+							contains: searchedUsername,
+							not: myUsername,
+							mode: "insensitive",
+						},
+					},
+				});
+				const foundUsersByEmail = [
+					await prisma.user.findUnique({
+						where: {
+							email: searchedUsername,
+						},
+					}),
+				];
+
+				console.log(foundUsersByEmail);
+
+				const foundUser =
+					foundUsersByUsername.length === 0
+						? foundUsersByEmail
+						: foundUsersByUsername;
+
+				// console.log(foundUser)
+
+				return foundUser;
+			} catch (error) {
+				throw new GraphQLError("something went wrong: " + error);
+			}
+		},
 	},
 	Mutation: {
 		createUsername: async (

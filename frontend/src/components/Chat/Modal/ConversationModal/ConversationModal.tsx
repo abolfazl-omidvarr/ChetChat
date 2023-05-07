@@ -17,6 +17,7 @@ import { RiUserSearchLine } from "react-icons/ri";
 import useConversationModal from "@/Hooks/useConversationModal";
 import userOperations from "@/graphql/operations/user";
 import { SearchUserData, SearchUserInput } from "@/util/types";
+import UserSearchList from "./UserSearchList";
 interface ConversationModalProps {
 	// session: Session;
 }
@@ -30,9 +31,9 @@ const ConversationModal: React.FC<ConversationModalProps> = ({}) => {
 		SearchUserInput
 	>(userOperations.Queries.searchUsers);
 
-	const onSearchSubmit = async (e: React.FormEvent) => {
+	const onSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		///search user
+		searchUsers({ variables: { username } });
 	};
 
 	return (
@@ -43,10 +44,10 @@ const ConversationModal: React.FC<ConversationModalProps> = ({}) => {
 					backdropFilter="blur(10px) hue-rotate(90deg)"
 				/>
 				<ModalContent bg="#2d2d2d" pb={4}>
-					<ModalHeader>Modal Title</ModalHeader>
+					<ModalHeader>Create a conversation</ModalHeader>
 					<ModalCloseButton />
 					<ModalBody>
-						<form>
+						<form onSubmit={onSearchSubmit}>
 							<Stack spacing={4}>
 								<Input
 									placeholder="Enter username"
@@ -54,15 +55,15 @@ const ConversationModal: React.FC<ConversationModalProps> = ({}) => {
 									onChange={(e) => setUsername(e.target.value)}
 								/>
 								<Button
-									onClick={onSearchSubmit}
 									leftIcon={<RiUserSearchLine size={25} />}
 									type="submit"
-									isDisabled={!username}
+									isDisabled={!username || loading}
 								>
 									Search
 								</Button>
 							</Stack>
 						</form>
+						<UserSearchList users={data?.searchUsers} />
 					</ModalBody>
 				</ModalContent>
 			</Modal>

@@ -1,12 +1,12 @@
 import gql from "graphql-tag";
 
 const typeDefs = gql`
-	type User {
+	type searchedUser {
 		id: String
 		username: String
 	}
 	type Query {
-		searchUser(username: String): [User]
+		searchUsers(username: String): [searchedUser]
 	}
 
 	type Mutation {

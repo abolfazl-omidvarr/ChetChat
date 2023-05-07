@@ -25,10 +25,10 @@ export interface SearchUserInput {
 }
 
 export interface SearchUserData {
-	searchUser: Array<SearchedUser>;
+	searchUsers: Array<SearchedUsers>;
 }
 
-export interface SearchedUser {
+export interface SearchedUsers {
 	id: string;
 	username: string;
 }
