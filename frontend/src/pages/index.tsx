@@ -8,26 +8,28 @@ import { useRouter } from "next/navigation";
 
 import { Chat, Auth } from "@/components";
 import { useCallback } from "react";
+import ConversationModal from "@/components/Chat/Modal/ConversationModal/ConversationModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const Home: NextPage = () => {
 	const { data: session } = useSession();
 
-	console.log(session);
-
 	const router = useRouter();
 
 	const reloadSession = useCallback(() => router.refresh(), [router]);
 
 	return (
-		<Box>
-			{session?.user.username ? (
-				<Chat session={session} />
-			) : (
-				<Auth session={session} reloadSession={reloadSession} />
-			)}
-		</Box>
+		<>
+			<Box>
+				{session?.user.username ? (
+					<Chat session={session} />
+				) : (
+					<Auth session={session} reloadSession={reloadSession} />
+				)}
+			</Box>
+			<ConversationModal session={session} />
+		</>
 	);
 };
 

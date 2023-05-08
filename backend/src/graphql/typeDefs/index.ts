@@ -1,10 +1,10 @@
 import userTypeDef from "./user";
-// import conversationTypeDef from "./conversation";
+import conversationTypeDef from "./conversation";
 // import messageTypeDef from "./message";
 
 const typeDefs = [
 	userTypeDef,
-	//  conversationTypeDef,
+	 conversationTypeDef,
 	//   messageTypeDef
 ];
 

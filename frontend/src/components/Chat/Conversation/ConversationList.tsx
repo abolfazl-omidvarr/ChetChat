@@ -18,7 +18,6 @@ const ConversationList: React.FC<ConversationListProps> = ({ session }) => {
 					Find or Start a Conversation
 				</Text>
 			</Box>
-			<ConversationModal />
 		</Box>
 	);
 };

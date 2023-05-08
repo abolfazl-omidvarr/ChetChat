@@ -26,7 +26,7 @@ const resolvers = {
 
 			const {
 				//@ts-ignore
-				user: { username: myUsername },
+				user: { username: myUsername, email: myEmail },
 			} = session;
 
 			try {
@@ -39,22 +39,20 @@ const resolvers = {
 						},
 					},
 				});
-				const foundUsersByEmail = [
-					await prisma.user.findUnique({
-						where: {
-							email: searchedUsername,
+				const foundUsersByEmail = await prisma.user.findMany({
+					where: {
+						email: {
+							equals: searchedUsername,
+							not: myEmail,
+							mode: "insensitive",
 						},
-					}),
-				];
-
-				console.log(foundUsersByEmail);
+					},
+				});
 
 				const foundUser =
 					foundUsersByUsername.length === 0
 						? foundUsersByEmail
 						: foundUsersByUsername;
-
-				// console.log(foundUser)
 
 				return foundUser;
 			} catch (error) {
@@ -69,7 +67,6 @@ const resolvers = {
 			context: GraphQLContext
 		): Promise<createUsernameResponse> => {
 			const { username } = args;
-			console.log(args);
 			const { prisma, session } = context;
 
 			if (!session?.user) {
@@ -79,7 +76,6 @@ const resolvers = {
 			}
 
 			const { id } = session.user;
-			console.log(session);
 
 			try {
 				//check uniqueness of username in database
