@@ -42,12 +42,11 @@ const UserNameCreate: React.FC<UserNameCreateProps> = ({}) => {
 
 			toast.success("Username successfully set! 🔥");
 			router.refresh();
-			
 		} catch (error: any) {
 			toast.error("username set failed: " + error?.message);
 			console.log("username set failed", error);
 		}
-	}, [username]);
+	}, [username, router, createUsername]);
 
 	return (
 		<>

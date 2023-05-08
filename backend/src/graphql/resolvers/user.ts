@@ -13,6 +13,8 @@ const resolvers = {
 			const { username: searchedUsername } = args;
 			const { session, prisma } = context;
 
+			console.log(session);
+
 			if (!session?.user) {
 				throw new GraphQLError(
 					"You are not authorized to perform this action.",

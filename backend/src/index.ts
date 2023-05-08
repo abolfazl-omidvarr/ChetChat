@@ -17,7 +17,6 @@ import express from "express";
 
 import * as dotenv from "dotenv";
 
-import { getSession } from "next-auth/react";
 import fetch from "node-fetch";
 
 import typeDefs from "./graphql/typeDefs";
@@ -26,9 +25,12 @@ import { GraphQLContext, Session } from "./util/types";
 import { PrismaClient } from "@prisma/client";
 
 export const getServerSession = async (cookie: string) => {
+	const url = `${process.env.CLIENT_ORIGIN}/api/auth/session`;
 	const res = await fetch(`${process.env.CLIENT_ORIGIN}/api/auth/session`, {
 		headers: { cookie: cookie },
 	});
+	console.log(cookie);
+
 	const session = await res.json();
 	return session;
 };
@@ -43,7 +45,7 @@ const main = async () => {
 	const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 	const corsOption = {
-		origin: process.env.CLIENT_ORIGIN,
+		origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
 		credentials: true,
 	};
 

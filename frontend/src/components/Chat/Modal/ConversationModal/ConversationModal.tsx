@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import useConversationModal from "@/Hooks/useConversationModal";
 import userOperations from "@/graphql/operations/user";
@@ -34,17 +34,13 @@ interface ConversationModalProps {
 }
 
 const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
-	const {
-		//@ts-ignore
-		user: { id: myId },
-	} = session;
-
 	const router = useRouter();
 
 	const { isOpen, onClose, participants, addParticipant, removeParticipant } =
 		useConversationModal();
 
 	const [username, setUsername] = useState("");
+	const [myId, setMyId] = useState("");
 
 	const [searchUsers, { data: queryData, loading: queryLoading }] =
 		useLazyQuery<SearchUserData, SearchUserInput>(
@@ -55,6 +51,17 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
 		CreateConversationData,
 		CreateConversationInput
 	>(conversationOperations.Mutations.createConversation);
+
+	useEffect(() => {
+		if (!session) return;
+
+		setMyId(session.user.id);
+	}, []);
+
+	// if (!session) return <></>;
+	// const {
+	// 	user: { id: myId },
+	// } = session;
 
 	const onSearchSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -85,7 +92,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
 			toast.error("Create Conversation felid");
 			console.log(error);
 		}
-	}, [participants]);
+	}, [participants, myId, router, createConversation]);
 
 	return (
 		<>

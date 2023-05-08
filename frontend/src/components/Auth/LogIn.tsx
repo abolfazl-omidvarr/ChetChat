@@ -78,7 +78,7 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin }) => {
 			<Button onClick={() => handleSubmit(onSubmit)()}>Log In</Button>
 
 			<Text className="text-sm py-2">
-				Don't have an account?
+				Don&apos;t have an account?
 				<span
 					onClick={() => setLogin(false)}
 					className="hover:underline ml-1 cursor-pointer"
