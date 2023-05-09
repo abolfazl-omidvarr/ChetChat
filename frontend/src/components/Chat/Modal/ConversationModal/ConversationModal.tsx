@@ -34,11 +34,6 @@ interface ConversationModalProps {
 }
 
 const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
-	const {
-		//@ts-ignore
-		user: { id: myId },
-	} = session;
-
 	const router = useRouter();
 
 	const { isOpen, onClose, participants, addParticipant, removeParticipant } =
@@ -50,6 +45,13 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
 		useLazyQuery<SearchUserData, SearchUserInput>(
 			userOperations.Queries.searchUsers
 		);
+
+	if (session) {
+		const {
+			//@ts-ignore
+			user: { id: myId },
+		} = session;
+	}
 
 	const [createConversation, { loading: mutationLoading }] = useMutation<
 		CreateConversationData,

@@ -4,6 +4,8 @@ import {
 	ApolloProvider,
 	gql,
 	HttpLink,
+	ApolloLink,
+	concat,
 } from "@apollo/client";
 
 const httpLink = new HttpLink({
@@ -11,7 +13,19 @@ const httpLink = new HttpLink({
 	credentials: "include",
 });
 
+const authMiddleware = new ApolloLink((operation, forward) => {
+	// add the authorization to the headers
+	operation.setContext(({ headers = {} }) => ({
+		headers: {
+			...headers,
+			authorization: "token" || null,
+		},
+	}));
+
+	return forward(operation);
+});
+
 export const client = new ApolloClient({
-	link: httpLink,
 	cache: new InMemoryCache(),
+	link: concat(authMiddleware, httpLink),
 });

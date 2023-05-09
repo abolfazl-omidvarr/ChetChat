@@ -82,6 +82,7 @@ const main = async () => {
 		bodyParser.json(),
 		expressMiddleware(server, {
 			context: async ({ req, res }): Promise<GraphQLContext> => {
+				console.log(req.headers);
 				const session = (await getServerSession(req.headers.cookie)) as Session;
 
 				return {
