@@ -24,6 +24,7 @@ import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import { GraphQLContext, Session } from "./util/types";
 import { PrismaClient } from "@prisma/client";
+import auth from "./middleWare/auth";
 
 export const getServerSession = async (cookie: string) => {
 	const res = await fetch(`${process.env.CLIENT_ORIGIN}/api/auth/session`, {
@@ -82,7 +83,9 @@ const main = async () => {
 		bodyParser.json(),
 		expressMiddleware(server, {
 			context: async ({ req, res }): Promise<GraphQLContext> => {
-				console.log(req.headers);
+				
+				auth();
+
 				const session = (await getServerSession(req.headers.cookie)) as Session;
 
 				return {
