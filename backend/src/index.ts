@@ -24,7 +24,8 @@ import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import { GraphQLContext, Session } from "./util/types";
 import { PrismaClient } from "@prisma/client";
-import auth from "./middleWare/auth";
+import { isAuthMiddleWare } from "./middleWare/isAuth";
+import cookieParser from "cookie-parser";
 
 export const getServerSession = async (cookie: string) => {
 	const res = await fetch(`${process.env.CLIENT_ORIGIN}/api/auth/session`, {
@@ -59,6 +60,7 @@ const main = async () => {
 
 	const server = new ApolloServer({
 		schema,
+		introspection: true,
 		csrfPrevention: true,
 		cache: "bounded",
 		plugins: [
@@ -77,27 +79,40 @@ const main = async () => {
 
 	await server.start();
 
+	app.use("/", cookieParser());
+
 	app.use(
 		"/graphql",
+		cookieParser(),
 		cors<cors.CorsRequest>(corsOption),
 		bodyParser.json(),
+		isAuthMiddleWare,
 		expressMiddleware(server, {
 			context: async ({ req, res }): Promise<GraphQLContext> => {
-				
-				auth();
-
-				const session = (await getServerSession(req.headers.cookie)) as Session;
-
-				return {
-					session,
-					prisma,
-				};
+				return { req, res, session: null, prisma };
 			},
 		})
 	);
 
+	app.post("/refresh_token", (req, res) => {
+		// Cookies that have not been signed
+		const token = req.cookies.jid;
+		if (!token) {
+			return res.send({ ok: false, accessToken: "" });
+		}
+
+		try {
+			
+		} catch (error) {
+			
+		}
+
+		// Cookies that have been signed
+		console.log("Signed Cookies: ", req.signedCookies);
+	});
+
 	httpServer.listen(4000, () => {
-		console.log("server is running");
+		console.log("`🚀 Server listening at port 4000");
 	});
 };
 

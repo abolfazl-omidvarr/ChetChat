@@ -1,11 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { PubSub } from "graphql-subscriptions";
 import { ISODateString } from "next-auth";
+import { Response, Request } from "express";
 
 export interface GraphQLContext {
 	session: Session | null;
 	prisma: PrismaClient;
-	// pubsub: PubSub;
+	req: Request;
+	res: Response;
 }
 
 /**
@@ -28,4 +30,10 @@ export interface User {
 export interface createUsernameResponse {
 	success?: boolean;
 	error?: string;
+}
+
+export interface loginUserResponse {
+	success?: boolean;
+	error?: string;
+	accessToken?: string;
 }

@@ -1,7 +1,13 @@
 import { User } from "@prisma/client";
-import { GraphQLContext, createUsernameResponse } from "../../util/types";
+import {
+	GraphQLContext,
+	createUsernameResponse,
+	loginUserResponse,
+} from "../../util/types";
 import bcrypt from "bcrypt";
 import { GraphQLError } from "graphql";
+import jwt from "jsonwebtoken";
+import { createAccessToken, createRefreshToken } from "../../util/functions";
 
 const resolvers = {
 	Query: {
@@ -156,6 +162,52 @@ const resolvers = {
 			} catch (error: any) {
 				return {
 					error: "Account creation failed, maybe try different inputs",
+				};
+			}
+		},
+		loginUser: async (
+			_parent: any,
+			args: { userMail: string; password: string },
+			context: GraphQLContext
+		): Promise<loginUserResponse> => {
+			const { userMail, password } = args;
+			const { prisma, session, req, res } = context;
+
+			console.log(res.locals);
+
+			try {
+				//check uniqueness of username in database
+				const existingUsername = await prisma.user.findUnique({
+					where: {
+						username: userMail,
+					},
+				});
+				const existingEmail = await prisma.user.findUnique({
+					where: {
+						email: userMail,
+					},
+				});
+
+				const existedUser = existingUsername || existingEmail;
+
+				if (!existedUser) {
+					return {
+						error: "Invalid Credentials",
+					};
+				}
+				//update user
+
+				res.cookie("jid", createRefreshToken(existedUser), {
+					httpOnly: true,
+				});
+
+				return {
+					success: true,
+					accessToken: createAccessToken(existedUser),
+				};
+			} catch (error: any) {
+				return {
+					error: "Account creation failed, maybe try different inputs" + error,
 				};
 			}
 		},

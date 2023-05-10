@@ -157,9 +157,6 @@ export const authOptionsWrapper = (req: any, res: any) => [
 		pages: {
 			signIn: "/",
 		},
-		session: {
-			strategy: "database",
-		},
 	} as AuthOptions,
 ];
 

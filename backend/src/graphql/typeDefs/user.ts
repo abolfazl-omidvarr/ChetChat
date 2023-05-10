@@ -15,9 +15,17 @@ const typeDefs = gql`
 	type Mutation {
 		createUser(username: String, password: String, email: String): CreateUser
 	}
+	type Mutation {
+		loginUser(userMail: String, password: String): LoginUser
+	}
 	type CreateUser {
 		success: Boolean
 		error: String
+	}
+	type LoginUser {
+		success: Boolean
+		error: String
+		accessToken: String
 	}
 	# type Subscription{}
 `;
