@@ -6,18 +6,21 @@ export const isAuthMiddleWare = (
 	res: Response,
 	next: NextFunction
 ) => {
-	const authorization = req.headers["authorization"] as string;
-	if (!authorization) res.locals.tokenPayload = null;
-
 	try {
+		const authorization = req.headers["authorization"] as string;
+		if (!authorization) throw new Error("no token provided");
+
 		const token = authorization.split(" ")[1];
 		const payload = jwt.verify(token, process.env.ACCESS_SECRET);
-		res.locals.tokenPayload = { payload, status: "successfully verified" };
+
+		res.locals.tokenPayload = {
+			payload,
+			status: "token successfully verified",
+		};
 	} catch (error) {
-		console.log(error);
 		res.locals.tokenPayload = {
 			payload: null,
-			status: "bad token",
+			status: error.message,
 		};
 	}
 

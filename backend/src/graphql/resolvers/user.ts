@@ -6,7 +6,6 @@ import {
 } from "../../util/types";
 import bcrypt from "bcrypt";
 import { GraphQLError } from "graphql";
-import jwt from "jsonwebtoken";
 import { createAccessToken, createRefreshToken } from "../../util/functions";
 
 const resolvers = {
@@ -171,9 +170,7 @@ const resolvers = {
 			context: GraphQLContext
 		): Promise<loginUserResponse> => {
 			const { userMail, password } = args;
-			const { prisma, session, req, res } = context;
-
-			console.log(res.locals);
+			const { prisma, session, req, res, tokenPayload } = context;
 
 			try {
 				//check uniqueness of username in database

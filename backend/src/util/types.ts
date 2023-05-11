@@ -8,11 +8,18 @@ export interface GraphQLContext {
 	prisma: PrismaClient;
 	req: Request;
 	res: Response;
+	tokenPayload: TokenPayload;
 }
 
-/**
- * Users
- */
+export interface TokenPayload {
+	payload: {
+		userId: string;
+		iat: number;
+		exp: number;
+	};
+	status: string;
+}
+
 export interface Session {
 	user?: User;
 	expires: ISODateString;
