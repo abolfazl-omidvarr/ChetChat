@@ -11,13 +11,13 @@ export const isAuthMiddleWare = (
 		if (!authorization) throw new Error("no token provided");
 
 		const token = authorization.split(" ")[1];
-		const payload = jwt.verify(token, process.env.ACCESS_SECRET);
+		const payload = jwt.verify(token, process.env.ACCESS_SECRET!);
 
 		res.locals.tokenPayload = {
 			payload,
 			status: "token successfully verified",
 		};
-	} catch (error) {
+	} catch (error: any) {
 		res.locals.tokenPayload = {
 			payload: null,
 			status: error.message,

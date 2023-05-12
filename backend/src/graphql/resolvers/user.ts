@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import {
 	GraphQLContext,
 	createUsernameResponse,
@@ -6,7 +6,11 @@ import {
 } from "../../util/types";
 import bcrypt from "bcrypt";
 import { GraphQLError } from "graphql";
-import { createAccessToken, createRefreshToken } from "../../util/functions";
+import {
+	createAccessToken,
+	createRefreshToken,
+	sendRefreshToken,
+} from "../../util/functions";
 
 const resolvers = {
 	Query: {
@@ -62,6 +66,69 @@ const resolvers = {
 				return foundUser;
 			} catch (error) {
 				throw new GraphQLError("something went wrong: " + error);
+			}
+		},
+		loginUser: async (
+			_parent: any,
+			args: { userMail: string; password: string },
+			context: GraphQLContext
+		): Promise<loginUserResponse> => {
+			console.log("called");
+			const { userMail, password } = args;
+			const { prisma, session, req, res, tokenPayload } = context;
+
+			console.log(req.headers);
+
+			try {
+				//search for user in database
+				const existingUsername = await prisma.user.findUnique({
+					where: {
+						username: userMail,
+					},
+				});
+				const existingEmail = await prisma.user.findUnique({
+					where: {
+						email: userMail,
+					},
+				});
+				const existedUser = existingUsername || existingEmail;
+				if (!existedUser) {
+					return {
+						error: "Invalid Credentials",
+					};
+				}
+
+				//compare found user's password with given password:
+				//if no password is in database return error(in case of OAuth2 login type)
+				if (!existedUser.hashedPassword) {
+					return {
+						error: "Invalid Credentials",
+					};
+				}
+
+				//password validation
+				const isCorrectPassword = await bcrypt.compare(
+					password,
+					existedUser.hashedPassword
+				);
+
+				if (isCorrectPassword) {
+					//send refresh token as httpOnly cookie
+					sendRefreshToken(res, createRefreshToken(existedUser));
+
+					return {
+						success: true,
+						accessToken: createAccessToken(existedUser),
+					};
+				} else {
+					return {
+						error: "Invalid Credentials",
+					};
+				}
+			} catch (error: any) {
+				return {
+					error: "login failed" + error,
+				};
 			}
 		},
 	},
@@ -164,49 +231,17 @@ const resolvers = {
 				};
 			}
 		},
-		loginUser: async (
+		revokeRefreshToken: async (
 			_parent: any,
-			args: { userMail: string; password: string },
+			args: { userId: string },
 			context: GraphQLContext
-		): Promise<loginUserResponse> => {
-			const { userMail, password } = args;
+		) => {
+			const { userId } = args;
 			const { prisma, session, req, res, tokenPayload } = context;
-
-			try {
-				//check uniqueness of username in database
-				const existingUsername = await prisma.user.findUnique({
-					where: {
-						username: userMail,
-					},
-				});
-				const existingEmail = await prisma.user.findUnique({
-					where: {
-						email: userMail,
-					},
-				});
-
-				const existedUser = existingUsername || existingEmail;
-
-				if (!existedUser) {
-					return {
-						error: "Invalid Credentials",
-					};
-				}
-				//update user
-
-				res.cookie("jid", createRefreshToken(existedUser), {
-					httpOnly: true,
-				});
-
-				return {
-					success: true,
-					accessToken: createAccessToken(existedUser),
-				};
-			} catch (error: any) {
-				return {
-					error: "Account creation failed, maybe try different inputs" + error,
-				};
-			}
+			await prisma.user.update({
+				where: { id: userId },
+				data: { tokenVersion: { increment: 1 } },
+			});
 		},
 	},
 	// Subscription: {},

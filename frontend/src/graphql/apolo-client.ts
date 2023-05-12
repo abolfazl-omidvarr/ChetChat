@@ -8,17 +8,20 @@ import {
 	concat,
 } from "@apollo/client";
 
+import { getAccessToken } from "@/libs/AccessToken";
+
 const httpLink = new HttpLink({
 	uri: "http://localhost:4000/graphql",
 	credentials: "include",
 });
 
 const authMiddleware = new ApolloLink((operation, forward) => {
+	const accessToken = getAccessToken();
 	// add the authorization to the headers
 	operation.setContext(({ headers = {} }) => ({
 		headers: {
 			...headers,
-			authorization: "token" || null,
+			authorization: accessToken ? `bearer ${accessToken}` : "UNAUTHORIZED",
 		},
 	}));
 

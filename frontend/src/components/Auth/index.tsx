@@ -6,19 +6,19 @@ import UserNameCreate from "./UserNameCreate";
 import AccountCreate from "./AccountCreate";
 import LogIn from "./LogIn";
 
-interface IAuthProps {
-	session: Session | null;
+interface AuthProps {
+	at: string | null;
 	reloadSession: () => void;
 }
 
-const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
+const Auth: React.FC<AuthProps> = ({ at, reloadSession }) => {
 	const [logIn, setLogIn] = useState(false);
 
-	const authComponent = !session ? (
+	const authComponent = !at ? (
 		!logIn ? (
 			<AccountCreate login={logIn} setLogin={setLogIn} />
 		) : (
-			<LogIn login={logIn} setLogin={setLogIn} />
+			<LogIn login={logIn} setLogin={setLogIn} reloadSession={reloadSession} />
 		)
 	) : (
 		<UserNameCreate />

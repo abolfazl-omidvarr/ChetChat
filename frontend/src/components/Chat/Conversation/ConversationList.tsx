@@ -3,10 +3,10 @@ import { Box, Text } from "@chakra-ui/react";
 import ConversationModal from "../Modal/ConversationModal/ConversationModal";
 import useConversationModal from "@/Hooks/useConversationModal";
 interface ConversationListProps {
-	session: Session;
+	at: string;
 }
 
-const ConversationList: React.FC<ConversationListProps> = ({ session }) => {
+const ConversationList: React.FC<ConversationListProps> = ({ at }) => {
 	const { onOpen } = useConversationModal();
 	return (
 		<Box className="w-full" onClick={onOpen}>

@@ -11,6 +11,14 @@ export interface CreateUserData {
 	};
 }
 
+export interface LoginUserData {
+	loginUser: {
+		success: boolean;
+		error: string;
+		accessToken: string;
+	};
+}
+
 export interface CreateUsernameVariable {
 	username: string;
 }
@@ -19,7 +27,10 @@ export interface CreateUserVariable {
 	email: string;
 	password: string;
 }
-
+export interface LoginUserVariable {
+	userMail: string;
+	password: string;
+}
 export interface SearchUserInput {
 	username: string;
 }
@@ -43,4 +54,17 @@ export interface CreateConversationData {
 
 export interface CreateConversationInput {
 	participantIds: Array<string>;
+}
+
+//////////////////////////////////////test
+
+export interface testData {
+	test: {
+		success: boolean;
+		error: string;
+	};
+}
+
+export interface testInput {
+	a: string;
 }

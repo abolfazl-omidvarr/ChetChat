@@ -10,6 +10,15 @@ const userOperations = {
 				}
 			}
 		`,
+		loginUser: gql`
+			query LoginUser($userMail: String!, $password: String!) {
+				loginUser(userMail: $userMail, password: $password) {
+					success
+					error
+					accessToken
+				}
+			}
+		`,
 	},
 	Mutations: {
 		createUsername: gql`

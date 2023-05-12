@@ -1,20 +1,35 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Button, Text } from "@chakra-ui/react";
 import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { useMutation } from "@apollo/client";
-import { CreateUserVariable, CreateUsernameData } from "@/util/types";
+import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import {
+	CreateUserVariable,
+	CreateUsernameData,
+	LoginUserData,
+	LoginUserVariable,
+	SearchUserData,
+	SearchUserInput,
+} from "@/util/types";
 import userOperations from "@/graphql/operations/user";
 import { toast } from "react-hot-toast";
+import { RiDatabase2Fill } from "react-icons/ri";
+import { getAccessToken, setAccessToken } from "@/libs/AccessToken";
 
 interface LogInProps {
 	login: boolean;
 	setLogin: (state: boolean) => void;
+	reloadSession: () => void;
 }
 
-const LogIn: React.FC<LogInProps> = ({ login, setLogin }) => {
+const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
+	const [loginUser, { data, loading }] = useLazyQuery<
+		LoginUserData,
+		LoginUserVariable
+	>(userOperations.Queries.loginUser);
+
 	const {
 		register,
 		handleSubmit,
@@ -24,17 +39,15 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin }) => {
 	});
 
 	const onSubmit: SubmitHandler<FieldValues> = useCallback(async (inputs) => {
-		signIn("credentials", {
-			...inputs,
-			redirect: false,
-		}).then((callback) => {
-			if (callback?.ok) {
-				toast.success("Logged in");
-			}
-			if (callback?.error) {
-				toast.error(callback.error);
-			}
+		const { userMail, password } = inputs;
+		const resp = await loginUser({
+			variables: { userMail, password },
 		});
+		const accessToken = resp.data?.loginUser?.accessToken;
+		if (resp && accessToken) {
+			setAccessToken(accessToken);
+			reloadSession();
+		}
 	}, []);
 
 	const inputClass = (id: string) => `
@@ -75,7 +88,13 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin }) => {
 				placeholder="Password"
 				className={inputClass("password")}
 			/>
-			<Button onClick={() => handleSubmit(onSubmit)()}>Log In</Button>
+			<Button
+				isLoading={loading}
+				isDisabled={loading}
+				onClick={() => handleSubmit(onSubmit)()}
+			>
+				Log In
+			</Button>
 
 			<Text className="text-sm py-2">
 				Don't have an account?

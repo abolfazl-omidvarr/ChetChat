@@ -18,7 +18,7 @@ import express from "express";
 import * as dotenv from "dotenv";
 
 import { getSession } from "next-auth/react";
-import Jwt, { JwtPayload } from "jsonwebtoken";
+import Jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 
 import typeDefs from "./graphql/typeDefs";
@@ -27,7 +27,11 @@ import { GraphQLContext, Session, TokenPayload } from "./util/types";
 import { PrismaClient } from "@prisma/client";
 import { isAuthMiddleWare } from "./middleWare/isAuth";
 import cookieParser from "cookie-parser";
-import { createAccessToken } from "./util/functions";
+import {
+	createAccessToken,
+	createRefreshToken,
+	sendRefreshToken,
+} from "./util/functions";
 
 export const getServerSession = async (cookie: string) => {
 	const res = await fetch(`${process.env.CLIENT_ORIGIN}/api/auth/session`, {
@@ -96,16 +100,16 @@ const main = async () => {
 			},
 		})
 	);
+	app.use("/refresh_token", cors<cors.CorsRequest>(corsOption));
 
 	app.post("/refresh_token", async (req, res) => {
-		// Cookies that have not been signed
 		const token = req.cookies.jid;
 		if (!token) {
 			return res.send({ ok: false, accessToken: "" });
 		}
 
 		try {
-			const payload: any = Jwt.verify(token, process.env.REFRESH_SECRET);
+			const payload: any = Jwt.verify(token, process.env.REFRESH_SECRET!);
 			const user = await prisma.user.findUnique({
 				where: {
 					id: payload.userId,
@@ -114,7 +118,18 @@ const main = async () => {
 			if (!user) {
 				return res.send({ ok: false, accessToken: "" });
 			}
-			return res.send({ ok: true, accessToken: createAccessToken(user) });
+
+			if (user.tokenVersion !== payload.tokenVersion) {
+				return res.send({ ok: false, accessToken: "" });
+			}
+
+			sendRefreshToken(res, createRefreshToken(user));
+
+			return res.send({
+				ok: true,
+				accessToken: createAccessToken(user),
+				userId: payload.userId,
+			});
 		} catch (error) {
 			console.log(error);
 		}

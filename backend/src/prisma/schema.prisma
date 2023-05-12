@@ -48,6 +48,7 @@ model User {
   accounts                Account[]
   sessions                Session[]
   Message                 Message[]
+  tokenVersion            Int                       @default(0)
 }
 
 model VerificationToken {

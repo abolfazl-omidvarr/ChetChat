@@ -3,15 +3,13 @@ import { Session } from "next-auth";
 import ConversationList from "./ConversationList";
 
 interface ConversationWrapperProps {
-	session: Session;
+	at: string;
 }
 
-const ConversationWrapper: React.FC<ConversationWrapperProps> = ({
-	session,
-}) => {
+const ConversationWrapper: React.FC<ConversationWrapperProps> = ({ at }) => {
 	return (
 		<Box className="w-full md:w-[400px] bg-white/5 py-6 px-3">
-			<ConversationList session={session} />
+			<ConversationList at={at} />
 		</Box>
 	);
 };

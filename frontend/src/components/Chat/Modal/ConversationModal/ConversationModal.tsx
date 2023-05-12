@@ -30,10 +30,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 
 interface ConversationModalProps {
-	session: Session | null;
+	at: string;
 }
 
-const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
+const ConversationModal: React.FC<ConversationModalProps> = ({ at }) => {
 	const router = useRouter();
 
 	const { isOpen, onClose, participants, addParticipant, removeParticipant } =
@@ -45,13 +45,6 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ session }) => {
 		useLazyQuery<SearchUserData, SearchUserInput>(
 			userOperations.Queries.searchUsers
 		);
-
-	if (session) {
-		const {
-			//@ts-ignore
-			user: { id: myId },
-		} = session;
-	}
 
 	const [createConversation, { loading: mutationLoading }] = useMutation<
 		CreateConversationData,

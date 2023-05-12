@@ -44,7 +44,7 @@ const resolvers = {
 					include: conversationPopulated,
 				});
 				return { conversationId: conversation.id };
-			} catch (error) {
+			} catch (error: any) {
 				console.log(error);
 				throw new GraphQLError(
 					"Create conversation has encountered an error: ",
