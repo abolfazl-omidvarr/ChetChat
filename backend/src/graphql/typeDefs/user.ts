@@ -9,10 +9,10 @@ const typeDefs = gql`
 		searchUsers(username: String): [searchedUser]
 	}
 	type Query {
-		getCurrentUser(userId: String): GetCurrentUser
+		getCurrentUser: GetCurrentUser
 	}
 	type Query {
-		loginUser(userMail: String, password: String): LoginUser
+		loginUser(userMail: String, password: String): LoginUserResponse
 	}
 	type Mutation {
 		createUsername(username: String): CreateUser
@@ -23,15 +23,21 @@ const typeDefs = gql`
 	type Mutation {
 		revokeRefreshToken(userId: String): RevokeRefreshToken
 	}
-
+	type Mutation {
+		logOut: LogOutResponse
+	}
 	type CreateUser {
 		success: Boolean
 		error: String
 	}
-	type LoginUser {
+	type LoginUserResponse {
 		success: Boolean
 		error: String
 		accessToken: String
+	}
+	type LogOutResponse {
+		success: Boolean
+		error: String
 	}
 	type RevokeRefreshToken {
 		success: Boolean

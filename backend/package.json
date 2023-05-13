@@ -10,7 +10,6 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	"type": "module",
 	"dependencies": {
 		"@apollo/server": "^4.7.1",
 		"@graphql-tools/schema": "^9.0.19",

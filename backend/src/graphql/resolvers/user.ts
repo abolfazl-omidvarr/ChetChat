@@ -267,6 +267,10 @@ const resolvers = {
 				data: { tokenVersion: { increment: 1 } },
 			});
 		},
+		logOut: async (_parent: any, _args: any, context: GraphQLContext) => {
+			const { req, res } = context;
+			sendRefreshToken(res, "");
+		},
 	},
 	// Subscription: {},
 };

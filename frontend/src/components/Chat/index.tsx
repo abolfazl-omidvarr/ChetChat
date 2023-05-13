@@ -6,14 +6,16 @@ import FeedWrapper from "./Feed/FeedWrapper";
 import { Session } from "next-auth";
 import useAuthenticated from "@/Hooks/useAuthenticated";
 import { useRouter } from "next/navigation";
-import { useLazyQuery } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 
 import testOperations from "@/graphql/operations/test";
-import { testData, testInput } from "@/util/types";
+import { LogOutData, testData, testInput } from "@/util/types";
 
 import { store } from "@/redux/Store";
 import authSlice from "@/redux/authSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { useCallback } from "react";
+import userOperations from "@/graphql/operations/user";
 
 interface ChatProps {
 	at: string;
@@ -24,12 +26,16 @@ const Chat: React.FC<ChatProps> = ({ at }) => {
 		testOperations.Queries.test,
 		{ fetchPolicy: "no-cache" }
 	);
+	const [logOut, { loading: logOutLoading }] = useMutation<LogOutData, {}>(
+		userOperations.Mutations.logOut
+	);
 
 	// const dispatch = useDispatch();
 	// const auth = useSelector((state: any) => state.auth,);
 	// // console.log(auth);
 
-	const { onLogOut } = useAuthenticated();
+	const logOutHandler = useCallback(() => {}, []);
+
 	const router = useRouter();
 	return (
 		<Flex className="h-screen">
@@ -45,7 +51,7 @@ const Chat: React.FC<ChatProps> = ({ at }) => {
 			</Button>
 			<Button
 				onClick={() => {
-					onLogOut();
+					logOut();
 					router.refresh();
 				}}
 			>

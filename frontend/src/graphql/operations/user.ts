@@ -51,6 +51,14 @@ const userOperations = {
 				}
 			}
 		`,
+		logOut: gql`
+			mutation LogOut {
+				logOut {
+					success
+					error
+				}
+			}
+		`,
 	},
 	Subscriptions: {},
 };

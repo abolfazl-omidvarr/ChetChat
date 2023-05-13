@@ -43,6 +43,10 @@ export interface SearchedUsers {
 	id: string;
 	username: string;
 }
+export interface LogOutData {
+	success: boolean;
+	error: string;
+}
 
 ///////////////////////////////////conversations
 
