@@ -2,6 +2,7 @@ import { Prisma, User } from "@prisma/client";
 import {
 	GraphQLContext,
 	createUsernameResponse,
+	getCurrentUserResponse,
 	loginUserResponse,
 } from "../../util/types";
 import bcrypt from "bcrypt";
@@ -11,6 +12,7 @@ import {
 	createRefreshToken,
 	sendRefreshToken,
 } from "../../util/functions";
+import jwt from "jsonwebtoken";
 
 const resolvers = {
 	Query: {
@@ -130,6 +132,28 @@ const resolvers = {
 					error: "login failed" + error,
 				};
 			}
+		},
+		getCurrentUser: async (
+			_parent: any,
+			_args: any,
+			context: GraphQLContext
+		): Promise<getCurrentUserResponse> => {
+			const { prisma, res } = context;
+			const status = res.locals.tokenPayload.code;
+			const payload = res.locals.tokenPayload.payload;
+
+			if (status !== 200) return null;
+
+			const user = await prisma.user.findUnique({
+				where: { id: payload.userId },
+			});
+
+			return {
+				name: user.name,
+				email: user.email,
+				username: user.username,
+				image: user.image,
+			};
 		},
 	},
 	Mutation: {

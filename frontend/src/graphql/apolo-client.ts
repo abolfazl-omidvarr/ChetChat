@@ -8,6 +8,25 @@ import {
 	concat,
 } from "@apollo/client";
 
+import { store } from "@/redux/Store";
+import authSlice from "@/redux/authSlice";
+
+export function getUserId(): string | null {
+	const state = store.getState();
+	return state.auth.userId;
+}
+
+export function getToken(): string | null {
+	const state = store.getState();
+	return state.auth.token;
+}
+
+export function setCredentials(id: string | null, token: string | null) {
+	store.dispatch(
+		authSlice.actions.setCredentials({ user: id, accessToken: token })
+	);
+}
+
 import { getAccessToken, setAccessToken } from "@/libs/AccessToken";
 import { TokenRefreshLink } from "apollo-link-token-refresh";
 import jwtDecode from "jwt-decode";
@@ -20,14 +39,16 @@ const httpLink = new HttpLink({
 const refreshLink = new TokenRefreshLink({
 	accessTokenField: "accessToken",
 	isTokenValidOrUndefined: () => {
-		const token = getAccessToken();
+		const token = getToken();
 
 		if (!token) {
 			return true;
 		}
 
 		try {
-			const { exp } = jwtDecode<any>(token);
+			const jwtPayload = jwtDecode<any>(token);
+			const { exp } = jwtPayload;
+			console.log(jwtPayload);
 
 			if (Date.now() >= exp * 1000) {
 				return false;
@@ -45,7 +66,7 @@ const refreshLink = new TokenRefreshLink({
 		});
 	},
 	handleFetch: (accessToken) => {
-		setAccessToken(accessToken);
+		setCredentials(getUserId(), accessToken);
 	},
 	handleError: (error) => {
 		console.error("Cannot refresh access token:", error);
@@ -53,7 +74,7 @@ const refreshLink = new TokenRefreshLink({
 });
 
 const authMiddleware = new ApolloLink((operation, forward) => {
-	const accessToken = getAccessToken();
+	const accessToken = getToken();
 	// add the authorization to the headers
 	operation.setContext(({ headers = {} }) => ({
 		headers: {

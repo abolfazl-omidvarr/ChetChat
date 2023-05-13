@@ -44,3 +44,10 @@ export interface loginUserResponse {
 	error?: string;
 	accessToken?: string;
 }
+
+export interface getCurrentUserResponse {
+	name: string | null;
+	email: string | null;
+	username: string | null;
+	image: string | null;
+}

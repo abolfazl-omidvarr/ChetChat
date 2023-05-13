@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import jwt from "jsonwebtoken";
 
 interface UseAuthenticatedStore {
 	authenticated: boolean;

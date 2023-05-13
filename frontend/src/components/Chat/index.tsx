@@ -11,6 +11,10 @@ import { useLazyQuery } from "@apollo/client";
 import testOperations from "@/graphql/operations/test";
 import { testData, testInput } from "@/util/types";
 
+import { store } from "@/redux/Store";
+import authSlice from "@/redux/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 interface ChatProps {
 	at: string;
 }
@@ -20,6 +24,10 @@ const Chat: React.FC<ChatProps> = ({ at }) => {
 		testOperations.Queries.test,
 		{ fetchPolicy: "no-cache" }
 	);
+
+	// const dispatch = useDispatch();
+	// const auth = useSelector((state: any) => state.auth,);
+	// // console.log(auth);
 
 	const { onLogOut } = useAuthenticated();
 	const router = useRouter();

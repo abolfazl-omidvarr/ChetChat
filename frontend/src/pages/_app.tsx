@@ -6,19 +6,23 @@ import { theme } from "@/chakra/theme";
 import { ApolloProvider } from "@apollo/client";
 import { client } from "@/graphql/apolo-client";
 import { Toaster } from "react-hot-toast";
+import { Provider } from "react-redux";
+import { store } from "@/redux/Store";
 
 export default function App({
 	Component,
 	pageProps: { session, ...pageProps },
 }: AppProps) {
 	return (
-		<ApolloProvider client={client}>
-			<SessionProvider session={session}>
+		<Provider store={store}>
+			<ApolloProvider client={client}>
+				{/* <SessionProvider session={session}> */}
 				<ChakraProvider theme={theme}>
 					<Component {...pageProps} />
 					<Toaster toastOptions={{ className: "text-center" }} />
 				</ChakraProvider>
-			</SessionProvider>
-		</ApolloProvider>
+				{/* </SessionProvider> */}
+			</ApolloProvider>
+		</Provider>
 	);
 }

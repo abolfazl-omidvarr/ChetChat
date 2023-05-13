@@ -19,6 +19,16 @@ const userOperations = {
 				}
 			}
 		`,
+		getCurrentUser: gql`
+			query GetCurrentUser($userId: String) {
+				loginUser(userId: $userId) {
+					name
+					email
+					username
+					image
+				}
+			}
+		`,
 	},
 	Mutations: {
 		createUsername: gql`

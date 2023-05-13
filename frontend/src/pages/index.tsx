@@ -1,9 +1,9 @@
-// "use client";
+"use client";
 import Image from "next/image";
 // import { getSession, signIn, signOut, useSession } from "next-auth/react";
 import { Inter } from "next/font/google";
 import { NextPage, NextPageContext } from "next";
-import { Box, useEditable } from "@chakra-ui/react";
+import { Box, Button, useEditable } from "@chakra-ui/react";
 import { Session } from "next-auth";
 import { useRouter } from "next/navigation";
 
@@ -13,12 +13,25 @@ import ConversationModal from "@/components/Chat/Modal/ConversationModal/Convers
 import { getAccessToken, setAccessToken } from "@/libs/AccessToken";
 import useAuthenticated from "@/Hooks/useAuthenticated";
 
+import { store } from "@/redux/Store";
+import authSlice from "@/redux/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 const inter = Inter({ subsets: ["latin"] });
 
 const Home: NextPage = () => {
-	const [auth, setAuth] = useState(false);
-	const { onAuthentication, authenticated } = useAuthenticated();
 	const router = useRouter();
+
+	const dispatch = useDispatch();
+	const userId = useSelector((state: any) => state.auth.userId);
+	const token = useSelector((state: any) => state.auth.token);
+
+	const dispatchCredentials = (id: string | null, token: string | null) =>
+		dispatch(
+			authSlice.actions.setCredentials({ userId: id, accessToken: token })
+		);
+
+	console.log(token);
 
 	useEffect(() => {
 		fetch("http://localhost:4000/refresh_token", {
@@ -27,8 +40,9 @@ const Home: NextPage = () => {
 		}).then(async (data) => {
 			const { accessToken, userId } = await data.json();
 			if (accessToken) {
-				setAccessToken(accessToken);
-				onAuthentication(accessToken, userId);
+				dispatchCredentials(userId, accessToken);
+			} else {
+				dispatchCredentials(null, null);
 			}
 		});
 	}, []);
@@ -38,7 +52,7 @@ const Home: NextPage = () => {
 	return (
 		<>
 			<Box>
-				{authenticated ? (
+				{token ? (
 					<Chat at={getAccessToken()} />
 				) : (
 					<Auth at={getAccessToken()} reloadSession={reloadSession} />

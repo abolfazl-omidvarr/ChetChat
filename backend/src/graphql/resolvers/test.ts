@@ -12,8 +12,13 @@ const resolvers = {
 			context: GraphQLContext
 		) => {
 			const { a } = args;
-			console.log(a);
-			console.log(context.res.locals);
+			// console.log(a)
+			const { tokenPayload } = context.res.locals;
+
+			if (tokenPayload.code !== 200) {
+				console.log(tokenPayload.code)
+				return { error: "unauth" };
+			}
 			return { success: true };
 		},
 	},

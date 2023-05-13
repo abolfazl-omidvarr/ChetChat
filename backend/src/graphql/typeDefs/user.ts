@@ -9,6 +9,9 @@ const typeDefs = gql`
 		searchUsers(username: String): [searchedUser]
 	}
 	type Query {
+		getCurrentUser(userId: String): GetCurrentUser
+	}
+	type Query {
 		loginUser(userMail: String, password: String): LoginUser
 	}
 	type Mutation {
@@ -20,7 +23,7 @@ const typeDefs = gql`
 	type Mutation {
 		revokeRefreshToken(userId: String): RevokeRefreshToken
 	}
-	
+
 	type CreateUser {
 		success: Boolean
 		error: String
@@ -34,6 +37,12 @@ const typeDefs = gql`
 		success: Boolean
 		error: String
 		tokenVersion: Int
+	}
+	type GetCurrentUser {
+		name: String
+		email: String
+		username: String
+		image: String
 	}
 	# type Subscription{}
 `;

@@ -16,11 +16,13 @@ export const isAuthMiddleWare = (
 		res.locals.tokenPayload = {
 			payload,
 			status: "token successfully verified",
+			code: 200,
 		};
 	} catch (error: any) {
 		res.locals.tokenPayload = {
 			payload: null,
 			status: error.message,
+			code: 401,
 		};
 	}
 
