@@ -50,8 +50,8 @@ const Chat: React.FC<ChatProps> = ({ at }) => {
 				test
 			</Button>
 			<Button
-				onClick={() => {
-					logOut();
+				onClick={async () => {
+					await logOut();
 					router.refresh();
 				}}
 			>

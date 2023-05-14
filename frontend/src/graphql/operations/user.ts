@@ -16,12 +16,13 @@ const userOperations = {
 					success
 					error
 					accessToken
+					userId
 				}
 			}
 		`,
 		getCurrentUser: gql`
-			query GetCurrentUser($userId: String) {
-				loginUser(userId: $userId) {
+			query GetCurrentUser {
+				getCurrentUser {
 					name
 					email
 					username

@@ -34,6 +34,7 @@ const typeDefs = gql`
 		success: Boolean
 		error: String
 		accessToken: String
+		userId: String
 	}
 	type LogOutResponse {
 		success: Boolean

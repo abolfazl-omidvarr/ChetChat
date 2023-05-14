@@ -17,6 +17,8 @@ import userOperations from "@/graphql/operations/user";
 import { toast } from "react-hot-toast";
 import { RiDatabase2Fill } from "react-icons/ri";
 import { getAccessToken, setAccessToken } from "@/libs/AccessToken";
+import { useDispatch, useSelector } from "react-redux";
+import authSlice from "@/redux/authSlice";
 
 interface LogInProps {
 	login: boolean;
@@ -25,6 +27,15 @@ interface LogInProps {
 }
 
 const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
+	const dispatch = useDispatch();
+	const dispatchAuthentication = (id: string | null, token: string | null) =>
+		dispatch(
+			authSlice.actions.setAuthenticationInfo({
+				userId: id,
+				accessToken: token,
+			})
+		);
+
 	const [loginUser, { data, loading }] = useLazyQuery<
 		LoginUserData,
 		LoginUserVariable
@@ -38,17 +49,30 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
 		defaultValues: { userMail: "", password: "" },
 	});
 
-	const onSubmit: SubmitHandler<FieldValues> = useCallback(async (inputs) => {
+	const onSubmit: SubmitHandler<FieldValues> = async (inputs) => {
 		const { userMail, password } = inputs;
-		const resp = await loginUser({
-			variables: { userMail, password },
-		});
-		const accessToken = resp.data?.loginUser?.accessToken;
-		if (resp && accessToken) {
-			setAccessToken(accessToken);
-			reloadSession();
+		try {
+			const resp = await loginUser({
+				variables: { userMail, password },
+			});
+
+			if (!resp.data) {
+				throw new Error("failed to communicate with server");
+			}
+			if (resp.data.loginUser.error) {
+				throw new Error(resp.data.loginUser.error);
+			}
+
+			const accessToken = resp.data.loginUser.accessToken;
+			const userId = resp.data.loginUser.userId;
+
+			dispatchAuthentication(userId, accessToken);
+			toast.success("successfully logged in, Welcome back");
+		} catch (error) {
+			toast.error("Login failed: " + error);
+			console.log(error);
 		}
-	}, []);
+	};
 
 	const inputClass = (id: string) => `
 	peer

@@ -21,9 +21,9 @@ export function getToken(): string | null {
 	return state.auth.token;
 }
 
-export function setCredentials(id: string | null, token: string | null) {
+export function setAuthentication(id: string | null, token: string | null) {
 	store.dispatch(
-		authSlice.actions.setCredentials({ user: id, accessToken: token })
+		authSlice.actions.setAuthenticationInfo({ user: id, accessToken: token })
 	);
 }
 
@@ -48,7 +48,6 @@ const refreshLink = new TokenRefreshLink({
 		try {
 			const jwtPayload = jwtDecode<any>(token);
 			const { exp } = jwtPayload;
-			console.log(jwtPayload);
 
 			if (Date.now() >= exp * 1000) {
 				return false;
@@ -66,7 +65,7 @@ const refreshLink = new TokenRefreshLink({
 		});
 	},
 	handleFetch: (accessToken) => {
-		setCredentials(getUserId(), accessToken);
+		setAuthentication(getUserId(), accessToken);
 	},
 	handleError: (error) => {
 		console.error("Cannot refresh access token:", error);

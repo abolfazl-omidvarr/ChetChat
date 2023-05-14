@@ -43,11 +43,12 @@ model User {
   hashedPassword          String?
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
-  emailVerified           DateTime?
+  emailVerified           Boolean?
   image                   String?
   accounts                Account[]
   sessions                Session[]
   Message                 Message[]
+  tokenVersion            Int                       @default(0)
 }
 
 model VerificationToken {

@@ -14,6 +14,7 @@ import { CreateUserVariable, CreateUserData } from "@/util/types";
 import userOperations from "@/graphql/operations/user";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import getGoogleOAuthURL from "@/util/getGoogleUrl";
 
 interface AccountCreateProps {
 	login: boolean;
@@ -141,7 +142,11 @@ const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
 			<Text className="text-4xl py-2">OR</Text>
 			<Button
 				isDisabled={loading}
-				onClick={() => signIn("google")}
+				onClick={() => {
+					window.location.replace(getGoogleOAuthURL());
+					// getGoogleOAuthURL()
+					// signIn("google");
+				}}
 				leftIcon={<FcGoogle size={25} />}
 			>
 				Continue with Google

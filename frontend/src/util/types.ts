@@ -16,6 +16,7 @@ export interface LoginUserData {
 		success: boolean;
 		error: string;
 		accessToken: string;
+		userId: string;
 	};
 }
 
@@ -46,6 +47,12 @@ export interface SearchedUsers {
 export interface LogOutData {
 	success: boolean;
 	error: string;
+}
+export interface getCurrentUserData {
+	name?: string;
+	email: string;
+	username?: string;
+	image?: string;
 }
 
 ///////////////////////////////////conversations

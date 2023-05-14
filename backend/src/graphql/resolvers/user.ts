@@ -22,7 +22,10 @@ const resolvers = {
 			context: GraphQLContext
 		): Promise<Array<User>> => {
 			const { username: searchedUsername } = args;
-			const { session, prisma } = context;
+			const { session, prisma, res } = context;
+
+			const { tokenPayload } = res.locals;
+
 
 			if (!session?.user) {
 				throw new GraphQLError(
@@ -75,11 +78,8 @@ const resolvers = {
 			args: { userMail: string; password: string },
 			context: GraphQLContext
 		): Promise<loginUserResponse> => {
-			console.log("called");
 			const { userMail, password } = args;
 			const { prisma, session, req, res, tokenPayload } = context;
-
-			console.log(req.headers);
 
 			try {
 				//search for user in database
@@ -121,6 +121,7 @@ const resolvers = {
 					return {
 						success: true,
 						accessToken: createAccessToken(existedUser),
+						userId: existedUser.id,
 					};
 				} else {
 					return {

@@ -17,16 +17,19 @@ import express from "express";
 
 import * as dotenv from "dotenv";
 
-import { getSession } from "next-auth/react";
+// import { getSession } from "next-auth/react";
 import Jwt from "jsonwebtoken";
 import fetch from "node-fetch";
 
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import { GraphQLContext, Session, TokenPayload } from "./util/types";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { isAuthMiddleWare } from "./middleWare/isAuth";
 import cookieParser from "cookie-parser";
+import axios from "axios";
+import qs from "query-string";
+import { googleUser } from "./util/types";
 import {
 	createAccessToken,
 	createRefreshToken,
@@ -101,7 +104,6 @@ const main = async () => {
 		})
 	);
 	app.use("/refresh_token", cors<cors.CorsRequest>(corsOption));
-
 	app.post("/refresh_token", async (req, res) => {
 		const token = req.cookies.jid;
 		if (!token) {
@@ -134,6 +136,76 @@ const main = async () => {
 			console.log(error);
 		}
 	});
+
+	app.use("/google-oAuth", cors<cors.CorsRequest>(corsOption));
+	app.get("/google-oAuth", async (req, res) => {
+		try {
+			//get the code from queryString
+			const code = req.query.code as string;
+			//get the id and access token with code
+			const { id_token, access_token } = await getGoogleOAuthTokens({ code });
+			//get user with token
+			const googleUser = Jwt.decode(id_token) as googleUser;
+			const foundUser = await findAccount(googleUser);
+			if (foundUser) {
+				sendRefreshToken(res, createRefreshToken(foundUser));
+				res.redirect("http://localhost:3000");
+			}
+
+			if (!foundUser) {
+				const createdUser = await createAccount(googleUser);
+				sendRefreshToken(res, createRefreshToken(createdUser));
+				res.redirect("http://localhost:3000");
+			}
+
+			//if not found
+		} catch (error) {
+			console.log(error);
+			console.log(error.message);
+			res.redirect("http://localhost:3000");
+		}
+	});
+
+	const getGoogleOAuthTokens = async ({ code }: { code: string }) => {
+		const url = "https://oauth2.googleapis.com/token";
+		const values = {
+			code,
+			client_id: process.env.GOOGLE_CLIENT_ID,
+			client_secret: process.env.GOOGLE_CLIENT_SECRET,
+			redirect_uri: process.env.GOOGLE_OAUTH_REDIRECT_URL,
+			grant_type: "authorization_code",
+		};
+
+		try {
+			const res = await axios.post(url, qs.stringify(values), {
+				headers: {
+					"Content-Type": "application/x-www-form-urlencoded",
+				},
+			});
+			return res.data;
+		} catch (error) {
+			console.log("failed to fetch google oath tokens:" + error.message);
+			throw new Error(error.message);
+		}
+	};
+	const findAccount = async (googleUser: googleUser) => {
+		const foundUser = await prisma.user.findUnique({
+			where: { email: googleUser.email },
+		});
+		return foundUser;
+	};
+	const updateAccount = async (user: any) => {};
+	const createAccount = async (googleUser: googleUser) => {
+		const createdUser = await prisma.user.create({
+			data: {
+				image: googleUser.picture,
+				email: googleUser.email,
+				emailVerified: googleUser.email_verified,
+				name: googleUser.name,
+			},
+		});
+		return createdUser;
+	};
 
 	httpServer.listen(4000, () => {
 		console.log("`🚀 Server listening at port 4000");

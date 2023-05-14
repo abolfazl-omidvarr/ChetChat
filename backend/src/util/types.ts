@@ -3,6 +3,15 @@ import { PubSub } from "graphql-subscriptions";
 import { ISODateString } from "next-auth";
 import { Response, Request } from "express";
 
+export interface googleUser {
+	email: string;
+	email_verified: boolean;
+	name: string;
+	picture: string;
+	given_name: string;
+	family_name: string;
+}
+
 export interface GraphQLContext {
 	session: Session | null;
 	prisma: PrismaClient;
@@ -43,6 +52,7 @@ export interface loginUserResponse {
 	success?: boolean;
 	error?: string;
 	accessToken?: string;
+	userId?: string;
 }
 
 export interface getCurrentUserResponse {

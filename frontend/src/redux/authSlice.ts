@@ -4,17 +4,31 @@ const authSlice = createSlice({
 	name: "auth",
 	initialState: {
 		userId: null,
+		username: null,
+		name: null,
+		image: null,
+		email: null,
 		token: null,
 	},
 	reducers: {
-		setCredentials: (state, action) => {
-			const { userId, accessToken } = action.payload;
+		setAuthenticationInfo: (state, action) => {
+			const { userId, accessToken, name, image, email, username } =
+				action.payload;
+
 			state.userId = userId;
 			state.token = accessToken;
+			state.username = username || null;
+			state.email = email;
+			state.image = image || null;
+			state.name = name || null;
 		},
 		logOut: (state) => {
 			state.userId = null;
 			state.token = null;
+			state.username = null;
+			state.email = null;
+			state.image = null;
+			state.name = null;
 		},
 	},
 });
