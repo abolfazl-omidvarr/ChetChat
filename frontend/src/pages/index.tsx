@@ -16,6 +16,7 @@ import { BeatLoader } from "react-spinners";
 import { useLazyQuery } from "@apollo/client";
 import userOperations from "@/graphql/operations/user";
 import { getCurrentUserData } from "@/util/types";
+import { toast } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,29 +24,29 @@ const Home: NextPage = () => {
 	const [loading, setLoading] = useState(true);
 	const router = useRouter();
 
-	const [getCurrentUser, { data }] = useLazyQuery<getCurrentUserData, {}>(
-		userOperations.Queries.getCurrentUser
-	);
+	const [getCurrentUser, { data: getUserData, error: getUserError }] =
+		useLazyQuery<getCurrentUserData, {}>(userOperations.Queries.getCurrentUser);
 
 	const dispatch = useDispatch();
 	const savedUserId = useSelector((state: any) => state.auth.userId);
 	const token = useSelector((state: any) => state.auth.token);
+	const username = useSelector((state: any) => state.auth.username);
 
-	const dispatchAuthentication = (
-		id: string | null,
-		token: string | null,
-		name: string | null = null,
-		image: string | null = null,
-		email: string | null = null,
-		username: string | null = null
-	) =>
+	const dispatchTokenAndId = (id: string | null, token: string | null) =>
 		dispatch(
-			authSlice.actions.setAuthenticationInfo({
+			authSlice.actions.setTokenAndId({
 				userId: id,
 				accessToken: token,
 			})
 		);
-
+	const dispatchUserInfo = (
+		name: string | null,
+		image: string | null,
+		email: string,
+		username: string | null
+	) =>
+		dispatch(authSlice.actions.setUserInfo({ username, email, image, name }));
+	//useEffect to get accessToken
 	useEffect(() => {
 		fetch("http://localhost:4000/refresh_token", {
 			method: "POST",
@@ -53,13 +54,36 @@ const Home: NextPage = () => {
 		}).then(async (data) => {
 			const { accessToken, userId } = await data.json();
 			if (accessToken) {
-				dispatchAuthentication(userId, accessToken);
+				dispatchTokenAndId(userId, accessToken);
 			} else {
-				dispatchAuthentication(null, null);
+				dispatchTokenAndId(null, null);
 			}
 			setLoading(false);
 		});
 	}, []);
+
+	//useEffect to get current user data
+	useEffect(() => {
+		if (!savedUserId) return;
+
+		const fetchUser = async () => {
+			try {
+				const data = await getCurrentUser();
+				if (getUserError) {
+					throw new Error("failed to fetch user info ");
+				} else {
+					//@ts-ignore
+					const { name, image, email, username } = data?.data?.getCurrentUser;
+					dispatchUserInfo(name, image, email, username);
+				}
+			} catch (error: any) {
+				console.log(error);
+				toast.error("faild to fetch user info: ", error);
+			}
+		};
+
+		fetchUser();
+	}, [savedUserId]);
 
 	const reloadSession = useCallback(() => router.refresh(), [router]);
 
@@ -74,7 +98,7 @@ const Home: NextPage = () => {
 	) : (
 		<>
 			<Box>
-				{token ? (
+				{token && username ? (
 					<Chat at={getAccessToken()} />
 				) : (
 					<Auth at={getAccessToken()} reloadSession={reloadSession} />

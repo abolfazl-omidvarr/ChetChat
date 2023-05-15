@@ -26,7 +26,6 @@ const resolvers = {
 
 			const { tokenPayload } = res.locals;
 
-
 			if (!session?.user) {
 				throw new GraphQLError(
 					"You are not authorized to perform this action.",
@@ -164,15 +163,16 @@ const resolvers = {
 			context: GraphQLContext
 		): Promise<createUsernameResponse> => {
 			const { username } = args;
-			const { prisma, session } = context;
+			const { prisma, session, req, res, tokenPayload } = context;
+			const {
+				payload: { userId },
+				code,
+				status,
+			} = tokenPayload;
 
-			if (!session?.user) {
-				return {
-					error: "not authorized",
-				};
+			if (code !== 200) {
+				throw new GraphQLError("access token Expired");
 			}
-
-			const { id } = session.user;
 
 			try {
 				//check uniqueness of username in database
@@ -187,11 +187,11 @@ const resolvers = {
 						error: "This username is already taken",
 					};
 				}
-				//update user
 
-				const updatedUser = await prisma.user.update({
+				//update user
+				await prisma.user.update({
 					where: {
-						id,
+						id: userId,
 					},
 					data: {
 						username,
@@ -201,9 +201,7 @@ const resolvers = {
 				return { success: true };
 			} catch (error: any) {
 				console.log("create username failed: ", error);
-				return {
-					error: error?.message,
-				};
+				throw new GraphQLError("create username failed:" + error);
 			}
 		},
 		createUser: async (

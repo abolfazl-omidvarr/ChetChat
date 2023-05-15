@@ -22,7 +22,7 @@ interface ChatProps {
 }
 
 const Chat: React.FC<ChatProps> = ({ at }) => {
-	const [test, { data, loading }] = useLazyQuery<testData, testInput>(
+	const [test, { data, loading, error }] = useLazyQuery<testData, testInput>(
 		testOperations.Queries.test,
 		{ fetchPolicy: "no-cache" }
 	);
@@ -42,9 +42,17 @@ const Chat: React.FC<ChatProps> = ({ at }) => {
 			<ConversationWrapper at={at} />
 			<FeedWrapper at={at} />
 			<Button
+				isDisabled={loading}
+				isLoading={loading}
 				onClick={async () => {
+					let data2;
 					const resp = await test({ variables: { a: "abolfazl" } });
-					console.log(resp);
+					if (resp?.data?.test.error) {
+						data2 = await resp.refetch();
+						console.log(data2?.data.test);
+					} else {
+						console.log(resp?.data?.test);
+					}
 				}}
 			>
 				test

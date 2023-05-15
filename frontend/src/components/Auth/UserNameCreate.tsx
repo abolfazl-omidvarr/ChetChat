@@ -30,6 +30,7 @@ const UserNameCreate: React.FC<UserNameCreateProps> = ({}) => {
 		if (!username) return;
 		try {
 			const { data } = await createUsername({ variables: { username } });
+			console.log(data);
 			if (!data?.createUsername) {
 				throw new Error("something went wrong");
 			}
@@ -41,8 +42,6 @@ const UserNameCreate: React.FC<UserNameCreateProps> = ({}) => {
 			}
 
 			toast.success("Username successfully set! 🔥");
-			router.refresh();
-			
 		} catch (error: any) {
 			toast.error("username set failed: " + error?.message);
 			console.log("username set failed", error);

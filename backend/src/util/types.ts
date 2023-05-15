@@ -27,6 +27,7 @@ export interface TokenPayload {
 		exp: number;
 	};
 	status: string;
+	code: number;
 }
 
 export interface Session {

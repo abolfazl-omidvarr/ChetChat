@@ -28,9 +28,9 @@ interface LogInProps {
 
 const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
 	const dispatch = useDispatch();
-	const dispatchAuthentication = (id: string | null, token: string | null) =>
+	const dispatchTokenAndId = (id: string | null, token: string | null) =>
 		dispatch(
-			authSlice.actions.setAuthenticationInfo({
+			authSlice.actions.setTokenAndId({
 				userId: id,
 				accessToken: token,
 			})
@@ -66,7 +66,7 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
 			const accessToken = resp.data.loginUser.accessToken;
 			const userId = resp.data.loginUser.userId;
 
-			dispatchAuthentication(userId, accessToken);
+			dispatchTokenAndId(userId, accessToken);
 			toast.success("successfully logged in, Welcome back");
 		} catch (error) {
 			toast.error("Login failed: " + error);

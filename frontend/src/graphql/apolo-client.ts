@@ -21,9 +21,9 @@ export function getToken(): string | null {
 	return state.auth.token;
 }
 
-export function setAuthentication(id: string | null, token: string | null) {
+export function dispatchTokenAndId(id: string | null, token: string | null) {
 	store.dispatch(
-		authSlice.actions.setAuthenticationInfo({ user: id, accessToken: token })
+		authSlice.actions.setTokenAndId({ user: id, accessToken: token })
 	);
 }
 
@@ -65,7 +65,7 @@ const refreshLink = new TokenRefreshLink({
 		});
 	},
 	handleFetch: (accessToken) => {
-		setAuthentication(getUserId(), accessToken);
+		dispatchTokenAndId(getUserId(), accessToken);
 	},
 	handleError: (error) => {
 		console.error("Cannot refresh access token:", error);

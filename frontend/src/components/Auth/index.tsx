@@ -5,6 +5,7 @@ import { Session } from "next-auth";
 import UserNameCreate from "./UserNameCreate";
 import AccountCreate from "./AccountCreate";
 import LogIn from "./LogIn";
+import { useDispatch, useSelector } from "react-redux";
 
 interface AuthProps {
 	at: string | null;
@@ -13,8 +14,13 @@ interface AuthProps {
 
 const Auth: React.FC<AuthProps> = ({ at, reloadSession }) => {
 	const [logIn, setLogIn] = useState(false);
+	const dispatch = useDispatch();
+	const token = useSelector((state: any) => state.auth.token);
+	const username = useSelector((state: any) => state.auth.username);
 
-	const authComponent = !at ? (
+	console.log("in auth:", !username);
+
+	const authComponent = username ? (
 		!logIn ? (
 			<AccountCreate login={logIn} setLogin={setLogIn} />
 		) : (

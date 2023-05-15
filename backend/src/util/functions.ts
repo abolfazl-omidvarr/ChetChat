@@ -4,7 +4,7 @@ import { Response } from "express";
 
 export const createAccessToken = (user: User) =>
 	Jwt.sign({ userId: user.id }, process.env.ACCESS_SECRET!, {
-		expiresIn: "10m",
+		expiresIn: "3s",
 	});
 
 export const createRefreshToken = (user: User) =>

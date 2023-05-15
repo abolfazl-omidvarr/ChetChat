@@ -11,12 +11,14 @@ const authSlice = createSlice({
 		token: null,
 	},
 	reducers: {
-		setAuthenticationInfo: (state, action) => {
-			const { userId, accessToken, name, image, email, username } =
-				action.payload;
-
+		setTokenAndId: (state, action) => {
+			const { userId, accessToken } = action.payload;
 			state.userId = userId;
 			state.token = accessToken;
+		},
+		setUserInfo: (state, action) => {
+			const { name, image, email, username } = action.payload;
+
 			state.username = username || null;
 			state.email = email;
 			state.image = image || null;
