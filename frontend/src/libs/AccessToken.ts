@@ -1,9 +1,9 @@
-let accessToken = "";
+let accessToken = '';
 
 export const setAccessToken = (s: string) => {
-	accessToken = s;
+  accessToken = s;
 };
 
 export const getAccessToken = (): string => {
-	return accessToken;
+  return accessToken;
 };

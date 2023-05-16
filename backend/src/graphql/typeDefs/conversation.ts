@@ -1,19 +1,19 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const typeDefs = gql`
-	# type Query {
+  # type Query {
 
-	# }
+  # }
 
-	type Mutation {
-		createConversation(participantIds: [String]!): createConversationResponse
-	}
+  type Mutation {
+    createConversation(participantIds: [String]!): createConversationResponse
+  }
 
-	type createConversationResponse {
-		conversationId: String
-	}
+  type createConversationResponse {
+    conversationId: String
+  }
 
-	# type Subscription{}
+  # type Subscription{}
 `;
 
 export default typeDefs;

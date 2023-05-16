@@ -1,81 +1,81 @@
 export interface CreateUsernameData {
-	createUsername: {
-		success: boolean;
-		error: string;
-	};
+  createUsername: {
+    success: boolean;
+    error: string;
+  };
 }
 export interface CreateUserData {
-	createUser: {
-		success: boolean;
-		error: string;
-	};
+  createUser: {
+    success: boolean;
+    error: string;
+  };
 }
 
 export interface LoginUserData {
-	loginUser: {
-		success: boolean;
-		error: string;
-		accessToken: string;
-		userId: string;
-	};
+  loginUser: {
+    success: boolean;
+    error: string;
+    accessToken: string;
+    userId: string;
+  };
 }
 
 export interface CreateUsernameVariable {
-	username: string;
+  username: string;
 }
 export interface CreateUserVariable {
-	username: string;
-	email: string;
-	password: string;
+  username: string;
+  email: string;
+  password: string;
 }
 export interface LoginUserVariable {
-	userMail: string;
-	password: string;
+  userMail: string;
+  password: string;
 }
 export interface SearchUserInput {
-	username: string;
+  username: string;
 }
 
 export interface SearchUserData {
-	searchUsers: Array<SearchedUsers>;
+  searchUsers: Array<SearchedUsers>;
 }
 
 export interface SearchedUsers {
-	id: string;
-	username: string;
+  id: string;
+  username: string;
 }
 export interface LogOutData {
-	success: boolean;
-	error: string;
+  success: boolean;
+  error: string;
 }
 export interface getCurrentUserData {
-	name?: string;
-	email: string;
-	username?: string;
-	image?: string;
+  name?: string;
+  email: string;
+  username?: string;
+  image?: string;
 }
 
 ///////////////////////////////////conversations
 
 export interface CreateConversationData {
-	createConversation: {
-		conversationId: string;
-	};
+  createConversation: {
+    conversationId: string;
+  };
 }
 
 export interface CreateConversationInput {
-	participantIds: Array<string>;
+  participantIds: Array<string>;
 }
 
 //////////////////////////////////////test
 
 export interface testData {
-	test: {
-		success: boolean;
-		error: string;
-	};
+  test: {
+    success: boolean;
+    error: string;
+  };
 }
 
 export interface testInput {
-	a: string;
+  a: string;
 }
