@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { useLazyQuery, useMutation } from '@apollo/client';
 import useConversationModal from '@/Hooks/useConversationModal';
 import userOperations from '@/graphql/operations/user';
+
 import {
   CreateConversationData,
   CreateConversationInput,
@@ -33,7 +34,6 @@ import { useSelector } from 'react-redux';
 interface ConversationModalProps {
   at: string;
 }
-
 const ConversationModal: React.FC<ConversationModalProps> = ({ at }) => {
   const router = useRouter();
   const [username, setUsername] = useState('');
@@ -41,6 +41,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ at }) => {
 
   const { isOpen, onClose, participants, addParticipant, removeParticipant } =
     useConversationModal();
+
 
   //search for user graphQL query
   const [searchUsers, { data: queryData, loading: queryLoading }] =
@@ -53,6 +54,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ at }) => {
     CreateConversationData,
     CreateConversationInput
   >(conversationOperations.Mutations.createConversation);
+
 
   const onSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +78,7 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ at }) => {
     }
   };
 
+
   const onCreateFunction = useCallback(async () => {
     const participantIds = [...participants.map((elem) => elem.id), myId];
     try {
@@ -94,13 +97,13 @@ const ConversationModal: React.FC<ConversationModalProps> = ({ at }) => {
         url: '/',
         query: { conversationId },
       });
-
       router.push(url);
     } catch (error: any) {
       toast.error('An error accrued: ' + error.message);
       console.log(error);
     }
   }, [participants]);
+
 
   return (
     <>

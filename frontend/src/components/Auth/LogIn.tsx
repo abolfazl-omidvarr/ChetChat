@@ -134,6 +134,7 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
       </Text>
     </>
   );
+
 };
 
 export default LogIn;

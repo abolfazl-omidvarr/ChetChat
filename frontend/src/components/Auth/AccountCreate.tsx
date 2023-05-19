@@ -35,6 +35,7 @@ const FormError: React.FC<FormErrorProps> = ({ criteria, text }) => (
 );
 
 const AccountCreate: React.FC<AccountCreateProps> = ({ login, setLogin }) => {
+
   const router = useRouter();
   const [createUser, { loading, data, error }] = useMutation<
     CreateUserData,
