@@ -47,6 +47,8 @@ const Home: NextPage = () => {
   ) =>
     dispatch(authSlice.actions.setUserInfo({ username, email, image, name }));
 
+  console.log(savedUserId);
+
   //useEffect to get accessToken
   useEffect(() => {
     fetch('http://localhost:4000/refresh_token', {
@@ -58,8 +60,8 @@ const Home: NextPage = () => {
         dispatchTokenAndId(userId, accessToken);
       } else {
         dispatchTokenAndId(null, null);
+        setLoading(false);
       }
-      setLoading(false);
     });
   }, []);
 
@@ -81,6 +83,7 @@ const Home: NextPage = () => {
         console.log(error);
         toast.error('faild to fetch user info: ', error);
       }
+      setLoading(false);
     };
 
     fetchUser();
@@ -97,15 +100,12 @@ const Home: NextPage = () => {
     </div>
   );
 
-  console.log(token);
-  console.log(username);
-
   return loading ? (
     Loading
   ) : (
     <>
       <Box>
-        {token ? (
+        {token && username ? (
           <Chat at={getAccessToken()} />
         ) : (
           <Auth

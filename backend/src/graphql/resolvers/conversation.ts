@@ -1,16 +1,56 @@
 import { Prisma, User } from '@prisma/client';
-import { GraphQLContext, createUsernameResponse } from '../../util/types';
+import {
+  ConversationPopulated,
+  GraphQLContext,
+  createUsernameResponse,
+} from '../../util/types';
 import bcrypt from 'bcrypt';
 import { GraphQLError } from 'graphql';
 import { getServerSession } from 'next-auth';
 
 const resolvers = {
   Query: {
-    __: async (
+    conversations: async (
       _parent: any,
-      args: { username: string },
+      _args: any,
       context: GraphQLContext
-    ) => {},
+    ) => {
+      // : Promise<Array<ConversationPopulated>>
+      console.log('in convo');
+      const { prisma, res } = context;
+      const { code, payload } = res?.locals.tokenPayload;
+      if (code !== 200) {
+        throw new GraphQLError(
+          'You are not authorized to perform this action.',
+          {
+            extensions: {
+              code: code,
+            },
+          }
+        );
+      }
+
+      try {
+        const { userId } = payload;
+        const conversations = await prisma.conversation.findMany({
+          where: {
+            participants: {
+              some: {
+                userId: {
+                  equals: userId,
+                },
+              },
+            },
+          },
+          include: conversationPopulated,
+        });
+
+        return conversations;
+      } catch (error: any) {
+        console.log('conversation error: ', error);
+        throw new GraphQLError(error.message);
+      }
+    },
   },
   Mutation: {
     createConversation: async (
@@ -18,17 +58,21 @@ const resolvers = {
       args: { participantIds: Array<string> },
       context: GraphQLContext
     ): Promise<{ conversationId: string }> => {
-      const { session, prisma } = context;
+      const { prisma, res, pubSub } = context;
       const { participantIds } = args;
 
-      if (!session?.user) {
-        throw new GraphQLError('Not Authorized');
+      const { code, payload } = res?.locals.tokenPayload;
+
+      if (code !== 200) {
+        throw new GraphQLError(
+          'You are not authorized to perform this action.',
+          {
+            extensions: {
+              code: code,
+            },
+          }
+        );
       }
-
-      const {
-        user: { id: userId },
-      } = session;
-
       try {
         const conversation = await prisma.conversation.create({
           data: {
@@ -36,13 +80,18 @@ const resolvers = {
               createMany: {
                 data: participantIds.map((id) => ({
                   userId: id,
-                  hasSeenLatestMassage: id === userId,
+                  hasSeenLatestMassage: id === payload.userId,
                 })),
               },
             },
           },
           include: conversationPopulated,
         });
+
+        pubSub?.publish('CONVERSATION_CREATED', {
+          conversationCreated: conversation,
+        });
+
         return { conversationId: conversation.id };
       } catch (error: any) {
         console.log(error);
@@ -53,7 +102,11 @@ const resolvers = {
       }
     },
   },
-  // Subscription: {},
+  Subscription: {
+    
+
+
+  },
 };
 
 export const participantPopulated =

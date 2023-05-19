@@ -1,10 +1,6 @@
 import gql from 'graphql-tag';
 
 const typeDefs = gql`
-  type searchedUser {
-    id: String
-    username: String
-  }
   type Query {
     searchUsers(username: String): [searchedUser]
   }
@@ -25,6 +21,17 @@ const typeDefs = gql`
   }
   type Mutation {
     logOut: LogOutResponse
+  }
+  type searchedUser {
+    id: String
+    username: String
+  }
+  type User {
+    id: String
+    username: String
+    email: String
+    emailVerified: Boolean
+    image: String
   }
   type CreateUser {
     success: Boolean

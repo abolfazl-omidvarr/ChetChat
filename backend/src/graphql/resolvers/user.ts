@@ -22,41 +22,42 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<Array<User>> => {
       const { username: searchedUsername } = args;
-      const { session, prisma, res } = context;
+      const { prisma, res } = context;
+      const {
+        code,
+        payload: { userId },
+      } = res?.locals.tokenPayload;
 
-      const { tokenPayload } = res.locals;
-
-      if (!session?.user) {
+      if (code !== 200) {
         throw new GraphQLError(
           'You are not authorized to perform this action.',
           {
             extensions: {
-              code: 'UNAUTHENTICATED',
+              code: code,
             },
           }
         );
       }
 
-      const {
-        //@ts-ignore
-        user: { username: myUsername, email: myEmail },
-      } = session;
-
       try {
         const foundUsersByUsername = await prisma.user.findMany({
           where: {
+            id: {
+              not: userId,
+            },
             username: {
               contains: searchedUsername,
-              not: myUsername,
               mode: 'insensitive',
             },
           },
         });
         const foundUsersByEmail = await prisma.user.findMany({
           where: {
+            id: {
+              not: userId,
+            },
             email: {
               equals: searchedUsername,
-              not: myEmail,
               mode: 'insensitive',
             },
           },
@@ -66,6 +67,8 @@ const resolvers = {
           foundUsersByUsername.length === 0
             ? foundUsersByEmail
             : foundUsersByUsername;
+
+        console.log(foundUser);
 
         return foundUser;
       } catch (error) {
@@ -78,7 +81,7 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<loginUserResponse> => {
       const { userMail, password } = args;
-      const { prisma, session, req, res, tokenPayload } = context;
+      const { prisma, req, res, tokenPayload } = context;
 
       try {
         //search for user in database
@@ -115,7 +118,7 @@ const resolvers = {
 
         if (isCorrectPassword) {
           //send refresh token as httpOnly cookie
-          sendRefreshToken(res, createRefreshToken(existedUser));
+          sendRefreshToken(res!, createRefreshToken(existedUser));
 
           return {
             success: true,
@@ -139,8 +142,8 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<getCurrentUserResponse | null> => {
       const { prisma, res } = context;
-      const status = res.locals.tokenPayload.code;
-      const payload = res.locals.tokenPayload.payload;
+      const status = res?.locals.tokenPayload.code;
+      const payload = res?.locals.tokenPayload.payload;
 
       try {
         if (status !== 200) {
@@ -173,12 +176,9 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<createUsernameResponse> => {
       const { username } = args;
-      const { prisma, session, req, res, tokenPayload } = context;
-      const {
-        payload: { userId },
-        code,
-        status,
-      } = tokenPayload;
+      const { prisma, req, res, tokenPayload } = context;
+      const code = tokenPayload?.code;
+      const userId = tokenPayload?.payload?.userId;
 
       if (code !== 200) {
         throw new GraphQLError('access token Expired');
@@ -220,7 +220,7 @@ const resolvers = {
       context: GraphQLContext
     ): Promise<createUsernameResponse> => {
       const { username, password, email } = args;
-      const { prisma, session } = context;
+      const { prisma } = context;
 
       const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -259,6 +259,7 @@ const resolvers = {
 
         return { success: true };
       } catch (error: any) {
+        console.log(error);
         return {
           error: 'Account creation failed, maybe try different inputs',
         };
@@ -270,7 +271,7 @@ const resolvers = {
       context: GraphQLContext
     ) => {
       const { userId } = args;
-      const { prisma, session, req, res, tokenPayload } = context;
+      const { prisma, req, res, tokenPayload } = context;
       await prisma.user.update({
         where: { id: userId },
         data: { tokenVersion: { increment: 1 } },
@@ -278,7 +279,7 @@ const resolvers = {
     },
     logOut: async (_parent: any, _args: any, context: GraphQLContext) => {
       const { req, res } = context;
-      sendRefreshToken(res, '');
+      sendRefreshToken(res!, '');
     },
   },
   // Subscription: {},

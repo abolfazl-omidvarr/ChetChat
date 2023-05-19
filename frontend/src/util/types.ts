@@ -1,3 +1,4 @@
+import { ConversationPopulated } from '../../../backend/src/util/types';
 export interface CreateUsernameData {
   createUsername: {
     success: boolean;
@@ -38,6 +39,15 @@ export interface SearchUserInput {
 
 export interface SearchUserData {
   searchUsers: Array<SearchedUsers>;
+  errors: Array<ApolloError>;
+}
+
+export interface ApolloError {
+  message: string;
+  locations: any;
+  extensions: {
+    code: number | string;
+  };
 }
 
 export interface SearchedUsers {
@@ -65,6 +75,10 @@ export interface CreateConversationData {
 
 export interface CreateConversationInput {
   participantIds: Array<string>;
+}
+
+export interface ConversationData {
+  conversations: Array<ConversationPopulated>;
 }
 
 //////////////////////////////////////test

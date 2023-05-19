@@ -1,7 +1,47 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { PubSub } from 'graphql-subscriptions';
 import { ISODateString } from 'next-auth';
 import { Response, Request } from 'express';
+import {
+  conversationPopulated,
+  participantPopulated,
+} from '../graphql/resolvers/conversation';
+
+import { Context } from 'graphql-ws/lib/server';
+
+/**
+ * server config interface
+ */
+export interface GraphQLContext {
+  prisma: PrismaClient;
+  req: Request | null;
+  res: Response | null;
+  tokenPayload?: TokenPayload | null;
+  pubSub?: PubSub;
+}
+
+export interface SubscriptionContext extends Context {
+  connectionParams: {
+    accessToken?: string;
+  };
+  prisma: PrismaClient;
+  req: Request;
+  res: Response;
+  tokenPayload: TokenPayload;
+}
+export interface TokenPayload {
+  payload: Payload | null;
+  status: string;
+  code: number;
+}
+
+export interface Payload {
+  userId: string;
+  iat: number;
+  exp: number;
+}
+
+//////////////////////////////////////////////////
 
 export interface googleUser {
   email: string;
@@ -12,28 +52,6 @@ export interface googleUser {
   family_name: string;
 }
 
-export interface GraphQLContext {
-  session: Session | null;
-  prisma: PrismaClient;
-  req: Request;
-  res: Response;
-  tokenPayload: TokenPayload;
-}
-
-export interface TokenPayload {
-  payload: {
-    userId: string;
-    iat: number;
-    exp: number;
-  };
-  status: string;
-  code: number;
-}
-
-export interface Session {
-  user?: User;
-  expires: ISODateString;
-}
 export interface User {
   id: string;
   email: string;
@@ -62,3 +80,14 @@ export interface getCurrentUserResponse {
   username: string | null;
   image: string | null;
 }
+
+/**
+ * Conversations
+ */
+export type ConversationPopulated = Prisma.ConversationGetPayload<{
+  include: typeof conversationPopulated;
+}>;
+
+export type ParticipantPopulated = Prisma.ConversationParticipantGetPayload<{
+  include: typeof participantPopulated;
+}>;

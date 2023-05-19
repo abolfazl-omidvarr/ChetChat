@@ -21,11 +21,15 @@ import Jwt from 'jsonwebtoken';
 
 import typeDefs from './graphql/typeDefs';
 import resolvers from './graphql/resolvers';
-import { GraphQLContext, Session, TokenPayload } from './util/types';
+import {
+  GraphQLContext,
+  SubscriptionContext,
+  TokenPayload,
+} from './util/types';
 import { PrismaClient, User } from '@prisma/client';
-import { isAuthMiddleWare } from './middleWare/isAuth';
+import prisma from './prisma/prisma';
+import { isAuthMiddleWare, isAuthSubscription } from './middleWare/isAuth';
 import cookieParser from 'cookie-parser';
-import axios from 'axios';
 import qs from 'querystring';
 import { googleUser } from './util/types';
 import {
@@ -38,7 +42,6 @@ const main = async () => {
   const pubSub = new PubSub();
   const app = express();
   const httpServer = createServer(app);
-
   dotenv.config();
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -48,15 +51,37 @@ const main = async () => {
     credentials: true,
   };
 
-  const prisma = new PrismaClient();
-
   const wsServer = new WebSocketServer({
     server: httpServer,
-    path: '/graphql',
+    path: '/graphql/subscriptions',
   });
 
-  const serverCleanup = useServer({ schema }, wsServer);
+  const getSubscriptionContext = async (
+    ctx: SubscriptionContext
+  ): Promise<GraphQLContext> => {
+    ctx;
+    // ctx is the graphql-ws Context where connectionParams live
+    if (ctx.connectionParams && ctx.connectionParams.accessToken) {
+      const { accessToken } = ctx.connectionParams;
+      const tokenPayload = isAuthSubscription(accessToken);
+      return { prisma, pubSub, tokenPayload, req: null, res: null };
+    }
+    // Otherwise let our resolvers know we don't have a current user
+    return { prisma, pubSub, tokenPayload: null, req: null, res: null };
+  };
 
+  const serverCleanup = useServer(
+    {
+      schema,
+      context: (ctx: SubscriptionContext) => {
+        // This will be run every time the client sends a subscription request
+        // Returning an object will add that information to our
+        // GraphQL context, which all of the resolvers have access to.
+        return getSubscriptionContext(ctx);
+      },
+    },
+    wsServer
+  );
   const server = new ApolloServer({
     schema,
     introspection: true,
@@ -89,7 +114,7 @@ const main = async () => {
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<GraphQLContext> => {
         const { tokenPayload } = res.locals;
-        return { req, res, session: null, prisma, tokenPayload };
+        return { req, res, prisma, tokenPayload };
       },
     })
   );
@@ -167,35 +192,61 @@ const main = async () => {
     };
 
     try {
-      const res = await axios.post(url, qs.stringify(values), {
+      // const res = await axios.post(url, values, {
+      //   headers: {
+      //     'Content-Type': 'application/x-www-form-urlencoded',
+      //   },
+      // });
+      //@ts-ignore
+      const googleUser = await fetch(url, {
+        method: 'POST',
+        body: qs.stringify(values),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-      });
-      return res.data;
+      }).then(async (res: any) => await res.json());
+
+      return googleUser;
     } catch (error: any) {
+      console.error(error);
       console.log('failed to fetch google oath tokens:' + error.message);
       throw new Error(error.message);
     }
   };
+
   const findAccount = async (googleUser: googleUser) => {
     const foundUser = await prisma.user.findUnique({
       where: { email: googleUser.email },
     });
     return foundUser;
   };
-  const updateAccount = async (user: any) => {};
+  // const updateAccount = async (user: any) => {};
   const createAccount = async (googleUser: googleUser) => {
+    const { picture, email, email_verified, name, given_name } = googleUser;
     const createdUser = await prisma.user.create({
       data: {
-        image: googleUser.picture,
-        email: googleUser.email,
-        emailVerified: googleUser.email_verified,
-        name: googleUser.name,
+        email,
+        emailVerified: email_verified,
+        image: picture,
+        name: name,
+        username: `${given_name}${makeId(5)}`,
       },
     });
     return createdUser;
   };
+
+  function makeId(length: number) {
+    let result = '';
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
+    }
+    return result;
+  }
 
   httpServer.listen(4000, () => {
     console.log('`🚀 Server listening at port 4000');

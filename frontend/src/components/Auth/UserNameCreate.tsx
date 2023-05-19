@@ -8,7 +8,11 @@ import { useCallback, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 import userOperations from '@/graphql/operations/user';
-import { CreateUsernameData, CreateUsernameVariable } from '@/util/types';
+import {
+  CreateUsernameData,
+  CreateUsernameVariable,
+  LogOutData,
+} from '@/util/types';
 import { useRouter } from 'next/navigation';
 
 type UserNameCreateProps = {
@@ -25,6 +29,9 @@ const UserNameCreate: React.FC<UserNameCreateProps> = ({}) => {
     CreateUsernameData,
     CreateUsernameVariable
   >(userOperations.Mutations.createUsername);
+  const [logOut, { loading: logOutLoading }] = useMutation<LogOutData, {}>(
+    userOperations.Mutations.logOut
+  );
 
   const onSubmit = useCallback(async () => {
     if (!username) return;
@@ -59,14 +66,19 @@ const UserNameCreate: React.FC<UserNameCreateProps> = ({}) => {
       <div className='flex flex-row gap-2 w-full'>
         <Button
           isLoading={loading}
+          isDisabled={loading || logOutLoading}
           className='w-1/2'
           onClick={onSubmit}>
           Save
         </Button>
         <Button
-          isDisabled={loading}
+          isDisabled={loading || logOutLoading}
+          isLoading={logOutLoading}
           className='w-1/2'
-          onClick={() => signOut()}>
+          onClick={async () => {
+            await logOut();
+            router.refresh();
+          }}>
           Cancel
         </Button>
       </div>

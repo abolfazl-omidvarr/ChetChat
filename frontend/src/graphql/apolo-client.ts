@@ -6,7 +6,12 @@ import {
   HttpLink,
   ApolloLink,
   concat,
+  split,
 } from '@apollo/client';
+
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+
+import { createClient } from 'graphql-ws';
 
 import { store } from '@/redux/Store';
 import authSlice from '@/redux/authSlice';
@@ -23,13 +28,13 @@ export function getToken(): string | null {
 
 export function dispatchTokenAndId(id: string | null, token: string | null) {
   store.dispatch(
-    authSlice.actions.setTokenAndId({ user: id, accessToken: token })
+    authSlice.actions.setTokenAndId({ userId: id, accessToken: token })
   );
 }
 
-import { getAccessToken, setAccessToken } from '@/libs/AccessToken';
 import { TokenRefreshLink } from 'apollo-link-token-refresh';
 import jwtDecode from 'jwt-decode';
+import { getMainDefinition } from '@apollo/client/utilities';
 
 const httpLink = new HttpLink({
   uri: 'http://localhost:4000/graphql',
@@ -78,6 +83,7 @@ const authMiddleware = new ApolloLink((operation, forward) => {
   operation.setContext(({ headers = {} }) => ({
     headers: {
       ...headers,
+
       authorization: accessToken ? `bearer ${accessToken}` : 'UNAUTHORIZED',
     },
   }));
@@ -85,8 +91,34 @@ const authMiddleware = new ApolloLink((operation, forward) => {
   return forward(operation);
 });
 
+const wsLink =
+  typeof window !== undefined
+    ? new GraphQLWsLink(
+        createClient({
+          url: 'ws://localhost:4000/graphql/subscriptions',
+          connectionParams: async () => ({
+            accessToken: getToken(),
+          }),
+        })
+      )
+    : null;
+
+const splitWsLink =
+  typeof window !== undefined && wsLink !== null
+    ? split(
+        ({ query }) => {
+          const def = getMainDefinition(query);
+          return (
+            def.kind === 'OperationDefinition' &&
+            def.operation === 'subscription'
+          );
+        },
+        wsLink,
+        httpLink
+      )
+    : httpLink;
+
 export const client = new ApolloClient({
   cache: new InMemoryCache(),
-  // link: concat(authMiddleware, httpLink),
-  link: authMiddleware.concat(refreshLink).concat(httpLink),
+  link: authMiddleware.concat(refreshLink).concat(splitWsLink),
 });
