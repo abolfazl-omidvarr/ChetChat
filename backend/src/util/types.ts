@@ -1,31 +1,93 @@
-import { PrismaClient } from "@prisma/client";
-import { PubSub } from "graphql-subscriptions";
-import { ISODateString } from "next-auth";
+import { Prisma, PrismaClient } from '@prisma/client';
+import { PubSub } from 'graphql-subscriptions';
+import { ISODateString } from 'next-auth';
+import { Response, Request } from 'express';
+import {
+  conversationPopulated,
+  participantPopulated,
+} from '../graphql/resolvers/conversation';
 
-export interface GraphQLContext {
-	session: Session | null;
-	prisma: PrismaClient;
-	// pubsub: PubSub;
-}
+import { Context } from 'graphql-ws/lib/server';
 
 /**
- * Users
+ * server config interface
  */
-export interface Session {
-	user?: User;
-	expires: ISODateString;
+export interface GraphQLContext {
+  prisma: PrismaClient;
+  req: Request | null;
+  res: Response | null;
+  tokenPayload?: TokenPayload | null;
+  pubSub?: PubSub;
 }
+
+export interface SubscriptionContext extends Context {
+  connectionParams: {
+    accessToken?: string;
+  };
+  prisma: PrismaClient;
+  req: Request;
+  res: Response;
+  tokenPayload: TokenPayload;
+}
+export interface TokenPayload {
+  payload: Payload | null;
+  status: string;
+  code: number;
+}
+
+export interface Payload {
+  userId: string;
+  iat: number;
+  exp: number;
+}
+
+//////////////////////////////////////////////////
+
+export interface googleUser {
+  email: string;
+  email_verified: boolean;
+  name: string;
+  picture: string;
+  given_name: string;
+  family_name: string;
+}
+
 export interface User {
-	id: string;
-	email: string;
-	image: string;
-	userName?: string | null;
-	name: string;
-	emailVerified?: boolean | null;
-	hashedPassword?: string | null;
+  id: string;
+  email: string;
+  image: string;
+  userName?: string | null;
+  name: string;
+  emailVerified?: boolean | null;
+  hashedPassword?: string | null;
 }
 
 export interface createUsernameResponse {
-	success?: boolean;
-	error?: string;
+  success?: boolean;
+  error?: string;
 }
+
+export interface loginUserResponse {
+  success?: boolean;
+  error?: string;
+  accessToken?: string;
+  userId?: string;
+}
+
+export interface getCurrentUserResponse {
+  name: string | null;
+  email: string | null;
+  username: string | null;
+  image: string | null;
+}
+
+/**
+ * Conversations
+ */
+export type ConversationPopulated = Prisma.ConversationGetPayload<{
+  include: typeof conversationPopulated;
+}>;
+
+export type ParticipantPopulated = Prisma.ConversationParticipantGetPayload<{
+  include: typeof participantPopulated;
+}>;

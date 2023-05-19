@@ -3,6 +3,6 @@
 @tailwind utilities;
 
 body {
-	height: 100vh;
-	background-color: rgba(0, 0, 0, 0.507);
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.507);
 }

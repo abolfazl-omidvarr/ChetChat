@@ -1,19 +1,34 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
 const typeDefs = gql`
-	# type Query {
+  scalar Date
 
-	# }
+  type Mutation {
+    createConversation(participantIds: [String]!): createConversationResponse
+  }
+  type Query {
+    conversations: [conversation]
+  }
 
-	type Mutation {
-		createConversation(participantIds: [String]!): createConversationResponse
-	}
+  type conversation {
+    id: String
+    latestMessage: Message
+    participants: [Participant]
+    createAt: Date
+    updatedAt: Date
+  }
+  type Participant {
+    id: String
+    user: User
+    hasSeenLatestMassage: Boolean
+  }
+  type createConversationResponse {
+    conversationId: String
+  }
 
-	type createConversationResponse {
-		conversationId: String
-	}
-
-	# type Subscription{}
+  type Subscription {
+    conversationCreated: Conversation
+  }
 `;
 
 export default typeDefs;

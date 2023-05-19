@@ -1,86 +1,139 @@
-import { Prisma, User } from "@prisma/client";
-import { GraphQLContext, createUsernameResponse } from "../../util/types";
-import bcrypt from "bcrypt";
-import { GraphQLError } from "graphql";
-import { getServerSession } from "next-auth";
+import { Prisma, User } from '@prisma/client';
+import {
+  ConversationPopulated,
+  GraphQLContext,
+  createUsernameResponse,
+} from '../../util/types';
+import bcrypt from 'bcrypt';
+import { GraphQLError } from 'graphql';
+import { getServerSession } from 'next-auth';
 
 const resolvers = {
-	Query: {
-		__: async (
-			_parent: any,
-			args: { username: string },
-			context: GraphQLContext
-		) => {},
-	},
-	Mutation: {
-		createConversation: async (
-			_parent: any,
-			args: { participantIds: Array<string> },
-			context: GraphQLContext
-		): Promise<{ conversationId: string }> => {
-			const { session, prisma } = context;
-			const { participantIds } = args;
+  Query: {
+    conversations: async (
+      _parent: any,
+      _args: any,
+      context: GraphQLContext
+    ) => {
+      // : Promise<Array<ConversationPopulated>>
+      console.log('in convo');
+      const { prisma, res } = context;
+      const { code, payload } = res?.locals.tokenPayload;
+      if (code !== 200) {
+        throw new GraphQLError(
+          'You are not authorized to perform this action.',
+          {
+            extensions: {
+              code: code,
+            },
+          }
+        );
+      }
 
-			if (!session?.user) {
-				throw new GraphQLError("Not Authorized");
-			}
+      try {
+        const { userId } = payload;
+        const conversations = await prisma.conversation.findMany({
+          where: {
+            participants: {
+              some: {
+                userId: {
+                  equals: userId,
+                },
+              },
+            },
+          },
+          include: conversationPopulated,
+        });
 
-			const {
-				user: { id: userId },
-			} = session;
+        return conversations;
+      } catch (error: any) {
+        console.log('conversation error: ', error);
+        throw new GraphQLError(error.message);
+      }
+    },
+  },
+  Mutation: {
+    createConversation: async (
+      _parent: any,
+      args: { participantIds: Array<string> },
+      context: GraphQLContext
+    ): Promise<{ conversationId: string }> => {
+      const { prisma, res, pubSub } = context;
+      const { participantIds } = args;
 
-			try {
-				const conversation = await prisma.conversation.create({
-					data: {
-						participants: {
-							createMany: {
-								data: participantIds.map((id) => ({
-									userId: id,
-									hasSeenLatestMassage: id === userId,
-								})),
-							},
-						},
-					},
-					include: conversationPopulated,
-				});
-				return { conversationId: conversation.id };
-			} catch (error) {
-				console.log(error);
-				throw new GraphQLError(
-					"Create conversation has encountered an error: ",
-					error
-				);
-			}
-		},
-	},
-	// Subscription: {},
+      const { code, payload } = res?.locals.tokenPayload;
+
+      if (code !== 200) {
+        throw new GraphQLError(
+          'You are not authorized to perform this action.',
+          {
+            extensions: {
+              code: code,
+            },
+          }
+        );
+      }
+      try {
+        const conversation = await prisma.conversation.create({
+          data: {
+            participants: {
+              createMany: {
+                data: participantIds.map((id) => ({
+                  userId: id,
+                  hasSeenLatestMassage: id === payload.userId,
+                })),
+              },
+            },
+          },
+          include: conversationPopulated,
+        });
+
+        pubSub?.publish('CONVERSATION_CREATED', {
+          conversationCreated: conversation,
+        });
+
+        return { conversationId: conversation.id };
+      } catch (error: any) {
+        console.log(error);
+        throw new GraphQLError(
+          'Create conversation has encountered an error: ',
+          error
+        );
+      }
+    },
+  },
+  Subscription: {
+    
+
+
+  },
 };
 
 export const participantPopulated =
-	Prisma.validator<Prisma.ConversationParticipantInclude>()({
-		user: {
-			select: {
-				id: true,
-				username: true,
-			},
-		},
-	});
+  Prisma.validator<Prisma.ConversationParticipantInclude>()({
+    user: {
+      select: {
+        id: true,
+        username: true,
+      },
+    },
+  });
 
 export const conversationPopulated =
-	Prisma.validator<Prisma.ConversationInclude>()({
-		participants: {
-			include: participantPopulated,
-		},
-		latestMessage: {
-			include: {
-				sender: {
-					select: {
-						id: true,
-						username: true,
-					},
-				},
-			},
-		},
-	});
+  Prisma.validator<Prisma.ConversationInclude>()({
+    participants: {
+      include: participantPopulated,
+    },
+    latestMessage: {
+      include: {
+        sender: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    },
+  });
 
 export default resolvers;
