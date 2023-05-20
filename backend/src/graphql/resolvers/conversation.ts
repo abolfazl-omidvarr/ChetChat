@@ -112,8 +112,9 @@ const resolvers = {
         const { pubSub, kosher } = context;
 
         console.log(pubSub);
+        console.log(kosher);
 
-        return pubSub.asyncIterator(['CONVERSATION_CREATED']);
+        return pubSub?.asyncIterator(['CONVERSATION_CREATED']);
       },
       // (
       //   payload: ConversationCreatedSubscriptionPayload,

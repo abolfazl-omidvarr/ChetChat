@@ -38,11 +38,12 @@ import {
   sendRefreshToken,
 } from './util/functions';
 
+dotenv.config();
+
 const main = async () => {
   const pubSub = new PubSub();
   const app = express();
   const httpServer = createServer(app);
-  dotenv.config();
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 

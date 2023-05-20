@@ -81,6 +81,14 @@ export interface ConversationData {
   conversations: Array<ConversationPopulated>;
 }
 
+export interface ConversationCreatedSubscriptionData {
+  subscriptionData: {
+    data: {
+      conversationCreated: ConversationPopulated;
+    };
+  };
+}
+
 //////////////////////////////////////test
 
 export interface testData {
