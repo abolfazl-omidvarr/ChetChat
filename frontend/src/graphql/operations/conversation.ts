@@ -40,7 +40,15 @@ const conversationOperations = {
       }
     `,
   },
-  Subscriptions: {},
+  Subscriptions: {
+    conversationCreated: gql`
+    subscription ConversationCreated {
+      conversationCreated {
+        ${ConversationFields}
+      }
+    }
+  `,
+  },
 };
 
 export default conversationOperations;

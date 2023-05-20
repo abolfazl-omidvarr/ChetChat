@@ -38,11 +38,12 @@ import {
   sendRefreshToken,
 } from './util/functions';
 
+dotenv.config();
+
 const main = async () => {
   const pubSub = new PubSub();
   const app = express();
   const httpServer = createServer(app);
-  dotenv.config();
 
   const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -64,10 +65,27 @@ const main = async () => {
     if (ctx.connectionParams && ctx.connectionParams.accessToken) {
       const { accessToken } = ctx.connectionParams;
       const tokenPayload = isAuthSubscription(accessToken);
-      return { prisma, pubSub, tokenPayload, req: null, res: null };
+      return {
+        prisma,
+        pubSub,
+        tokenPayload,
+        req: null,
+        res: null,
+        //@ts-ignore
+        kosher: 'hello',
+      };
     }
+
     // Otherwise let our resolvers know we don't have a current user
-    return { prisma, pubSub, tokenPayload: null, req: null, res: null };
+    return {
+      prisma,
+      pubSub,
+      tokenPayload: null,
+      req: null,
+      res: null,
+      //@ts-ignore
+      kosher: 'hello',
+    };
   };
 
   const serverCleanup = useServer(
@@ -114,7 +132,7 @@ const main = async () => {
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<GraphQLContext> => {
         const { tokenPayload } = res.locals;
-        return { req, res, prisma, tokenPayload };
+        return { req, res, prisma, tokenPayload, pubSub };
       },
     })
   );

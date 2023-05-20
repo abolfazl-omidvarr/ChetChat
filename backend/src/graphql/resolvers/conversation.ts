@@ -7,6 +7,7 @@ import {
 import bcrypt from 'bcrypt';
 import { GraphQLError } from 'graphql';
 import { getServerSession } from 'next-auth';
+import { withFilter } from 'graphql-subscriptions';
 
 const resolvers = {
   Query: {
@@ -63,6 +64,8 @@ const resolvers = {
 
       const { code, payload } = res?.locals.tokenPayload;
 
+      console.log('here is pubSub in createConversation', pubSub);
+
       if (code !== 200) {
         throw new GraphQLError(
           'You are not authorized to perform this action.',
@@ -103,9 +106,36 @@ const resolvers = {
     },
   },
   Subscription: {
-    
+    conversationCreated: {
+      subscribe: /*withFilter(*/ (_: any, __: any, context: GraphQLContext) => {
+        //@ts-ignore
+        const { pubSub, kosher } = context;
 
+        console.log(pubSub);
+        console.log(kosher);
 
+        return pubSub?.asyncIterator(['CONVERSATION_CREATED']);
+      },
+      // (
+      //   payload: ConversationCreatedSubscriptionPayload,
+      //   _,
+      //   context: GraphQLContext
+      // ) => {
+      //   const { session } = context;
+
+      //   if (!session?.user) {
+      //     throw new GraphQLError('Not authorized');
+      //   }
+
+      //   const { id: userId } = session.user;
+      //   const {
+      //     conversationCreated: { participants },
+      //   } = payload;
+
+      //   return userIsConversationParticipant(participants, userId);
+      // }
+      // ),
+    },
   },
 };
 
