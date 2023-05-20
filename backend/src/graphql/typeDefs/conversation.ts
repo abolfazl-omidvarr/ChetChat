@@ -7,10 +7,10 @@ const typeDefs = gql`
     createConversation(participantIds: [String]!): createConversationResponse
   }
   type Query {
-    conversations: [conversation]
+    conversations: [Conversation]
   }
 
-  type conversation {
+  type Conversation {
     id: String
     latestMessage: Message
     participants: [Participant]
