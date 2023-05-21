@@ -16,8 +16,8 @@ export interface GraphQLContext {
   prisma: PrismaClient;
   req: Request | null;
   res: Response | null;
-  tokenPayload?: TokenPayload | null;
-  pubSub?: PubSub;
+  tokenPayload: TokenPayload;
+  pubSub: PubSub;
 }
 
 export interface SubscriptionContext extends Context {

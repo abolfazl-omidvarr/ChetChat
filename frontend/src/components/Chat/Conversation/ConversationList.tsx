@@ -5,6 +5,9 @@ import useConversationModal from '@/Hooks/useConversationModal';
 import { ConversationPopulated } from '../../../../../backend/src/util/types';
 import { ConversationData } from '@/util/types';
 import ConversationItem from './conversationItem';
+import { useSearchParams } from 'next/navigation';
+import qs from 'querystring';
+import { useCallback } from 'react';
 
 interface ConversationListProps {
   conversations: Array<ConversationPopulated> | undefined;
@@ -13,6 +16,13 @@ interface ConversationListProps {
 const ConversationList: React.FC<ConversationListProps> = ({
   conversations,
 }) => {
+  const params = useSearchParams();
+
+  const onConversationClickHandler = useCallback(() => {
+    const paramss = params;
+    console.log(qs.parse(paramss.toString()));
+  }, [params]);
+
   const { onOpen } = useConversationModal();
   return (
     <Box className='w-full'>
@@ -25,6 +35,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
       </Box>
       {conversations?.map((conversation) => (
         <ConversationItem
+          onClick={onConversationClickHandler}
           conversation={conversation}
           key={conversation.id}
         />

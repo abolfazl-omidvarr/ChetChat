@@ -112,7 +112,7 @@ const resolvers = {
         (_: any, __: any, context: GraphQLContext) => {
           const { pubSub } = context;
 
-          return pubSub?.asyncIterator(['CONVERSATION_CREATED']);
+          return pubSub.asyncIterator(['CONVERSATION_CREATED']);
         },
         (
           payload: ConversationCreatedSubscriptionPayload,
@@ -125,7 +125,7 @@ const resolvers = {
             throw new GraphQLError('Not authorized: ' + tokenPayload.status);
           }
 
-          const userId = tokenPayload.payload.userId;
+          const userId = tokenPayload.payload!.userId;
 
           const {
             conversationCreated: { participants },

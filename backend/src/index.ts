@@ -80,7 +80,7 @@ const main = async () => {
     return {
       prisma,
       pubSub,
-      tokenPayload: null,
+      tokenPayload: { code: 403, payload: null, status: 'Not authorized' },
       req: null,
       res: null,
       //@ts-ignore

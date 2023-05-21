@@ -68,6 +68,7 @@ model Conversation {
   Message         Message[]
   latestMessageId String?                   @unique @db.ObjectId
   latestMessage   Message?                  @relation(name: "latestMessage", fields: [latestMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name            String
 }
 
 model ConversationParticipant {
@@ -90,4 +91,5 @@ model Message {
   senderId       String        @db.ObjectId
   sender         User          @relation(fields: [conversationId], references: [id])
   isLatestIn     Conversation? @relation(name: "latestMessage")
+  body           String
 }

@@ -12,11 +12,9 @@ import { ConversationPopulated } from '../../../../../backend/src/util/types';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 
-interface ConversationWrapperProps {
-  at: string;
-}
+interface ConversationWrapperProps {}
 
-const ConversationWrapper: React.FC<ConversationWrapperProps> = ({ at }) => {
+const ConversationWrapper: React.FC<ConversationWrapperProps> = ({}) => {
   const {
     data: conversationsData,
     loading: conversationsLoading,
