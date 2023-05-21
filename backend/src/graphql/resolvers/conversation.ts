@@ -2,6 +2,7 @@ import { Prisma, User } from '@prisma/client';
 import {
   ConversationPopulated,
   GraphQLContext,
+  ParticipantPopulated,
   createUsernameResponse,
 } from '../../util/types';
 import bcrypt from 'bcrypt';
@@ -107,37 +108,46 @@ const resolvers = {
   },
   Subscription: {
     conversationCreated: {
-      subscribe: /*withFilter(*/ (_: any, __: any, context: GraphQLContext) => {
-        //@ts-ignore
-        const { pubSub, kosher } = context;
+      subscribe: withFilter(
+        (_: any, __: any, context: GraphQLContext) => {
+          const { pubSub } = context;
 
-        console.log(pubSub);
-        console.log(kosher);
+          return pubSub?.asyncIterator(['CONVERSATION_CREATED']);
+        },
+        (
+          payload: ConversationCreatedSubscriptionPayload,
+          _variables: any,
+          context: GraphQLContext
+        ) => {
+          const { tokenPayload } = context;
 
-        return pubSub?.asyncIterator(['CONVERSATION_CREATED']);
-      },
-      // (
-      //   payload: ConversationCreatedSubscriptionPayload,
-      //   _,
-      //   context: GraphQLContext
-      // ) => {
-      //   const { session } = context;
+          if (tokenPayload.code !== 200) {
+            throw new GraphQLError('Not authorized: ' + tokenPayload.status);
+          }
 
-      //   if (!session?.user) {
-      //     throw new GraphQLError('Not authorized');
-      //   }
+          const userId = tokenPayload.payload.userId;
 
-      //   const { id: userId } = session.user;
-      //   const {
-      //     conversationCreated: { participants },
-      //   } = payload;
+          const {
+            conversationCreated: { participants },
+          } = payload;
 
-      //   return userIsConversationParticipant(participants, userId);
-      // }
-      // ),
+          const userIsConversationParticipant = (
+            participants: Array<ParticipantPopulated>,
+            userId: string
+          ) => {
+            return participants.some((p) => p.userId === userId);
+          };
+
+          return userIsConversationParticipant(participants, userId);
+        }
+      ),
     },
   },
 };
+
+export interface ConversationCreatedSubscriptionPayload {
+  conversationCreated: ConversationPopulated;
+}
 
 export const participantPopulated =
   Prisma.validator<Prisma.ConversationParticipantInclude>()({

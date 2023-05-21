@@ -1,6 +1,5 @@
 'use client';
 import { Box } from '@chakra-ui/react';
-import { Session } from 'next-auth';
 import ConversationList from './ConversationList';
 import { useQuery } from '@apollo/client';
 import conversationOperations from '@/graphql/operations/conversation';
