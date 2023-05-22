@@ -1,13 +1,10 @@
-import { Session } from 'next-auth';
-import { Box, Text } from '@chakra-ui/react';
-import ConversationModal from '../Modal/ConversationModal/ConversationModal';
-import useConversationModal from '@/Hooks/useConversationModal';
+import { Box } from '@chakra-ui/react';
 import { ConversationPopulated } from '../../../../../backend/src/util/types';
-import { ConversationData } from '@/util/types';
 import ConversationItem from './conversationItem';
 import { useSearchParams } from 'next/navigation';
 import qs from 'querystring';
 import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ConversationListProps {
   conversations: Array<ConversationPopulated> | undefined;
@@ -16,28 +13,28 @@ interface ConversationListProps {
 const ConversationList: React.FC<ConversationListProps> = ({
   conversations,
 }) => {
-  const params = useSearchParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const onConversationClickHandler = useCallback(() => {
-    const paramss = params;
-    console.log(qs.parse(paramss.toString()));
-  }, [params]);
+  const onConversationClickHandler = useCallback(
+    (conversationId: string) => {
+      const params = qs.parse(searchParams.toString());
+      const newParams = { ...params, conversationId };
+      router.push('?' + qs.stringify(newParams));
+    },
+    [searchParams]
+  );
 
-  const { onOpen } = useConversationModal();
   return (
     <Box className='w-full'>
-      <Box
-        onClick={onOpen}
-        className='py-2 px-5 mb-4 bg-black/20 rounded-md cursor-pointer'>
-        <Text className='font-semibold text-center'>
-          Find or Start a Conversation
-        </Text>
-      </Box>
       {conversations?.map((conversation) => (
         <ConversationItem
-          onClick={onConversationClickHandler}
+          onClickConversation={() => onConversationClickHandler(conversation.id)}
           conversation={conversation}
           key={conversation.id}
+          isSelected={
+            qs.parse(searchParams.toString()).conversationId === conversation.id
+          }
         />
       ))}
     </Box>
