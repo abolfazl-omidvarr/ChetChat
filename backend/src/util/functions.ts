@@ -1,6 +1,7 @@
 import Jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
 import { Response } from 'express';
+import { ParticipantPopulated } from './types';
 
 export const createAccessToken = (user: User) =>
   Jwt.sign({ userId: user.id }, process.env.ACCESS_SECRET!, {
@@ -20,4 +21,11 @@ export const sendRefreshToken = (res: Response, token: string) => {
   res.cookie('jid', token, {
     httpOnly: true,
   });
+};
+
+export const userIsConversationParticipant = (
+  participants: Array<ParticipantPopulated>,
+  userId: string
+): boolean => {
+  return participants.some((participant) => participant.id === userId);
 };

@@ -125,7 +125,11 @@ const resolvers = {
             throw new GraphQLError('Not authorized: ' + tokenPayload.status);
           }
 
-          const userId = tokenPayload.payload!.userId;
+          const userId = tokenPayload.payload!.userId;      //   headers: {
+            //     'Content-Type': 'application/x-www-form-urlencoded',
+            //   },
+            // });
+            //@ts-ignore
 
           const {
             conversationCreated: { participants },

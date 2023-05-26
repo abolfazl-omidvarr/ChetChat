@@ -22,14 +22,9 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
   isSelected,
 }) => {
   const searchParams = useSearchParams();
-  const params = qs.parse(searchParams.toString());
-
   const conversationName =
     conversation?.name ||
-    conversation?.participants
-      .map((p) => p.user.username)
-      .splice(0, 2)
-      .join(', ');
+    conversation?.participants.map((p) => p.user.username).join(', ');
 
   const conversationLatestMessage =
     conversation?.latestMessage?.body || 'No messages yet';

@@ -1,4 +1,5 @@
 import { gql } from '@apollo/client';
+import { messageFields } from './message';
 
 const ConversationFields = `
       id
@@ -11,13 +12,7 @@ const ConversationFields = `
         hasSeenLatestMassage
       }
       latestMessage {
-        id
-        sender {
-          id
-          username
-        }
-        body
-        createdAt
+        ${messageFields}
       }
 `;
 
