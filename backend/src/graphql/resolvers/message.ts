@@ -24,6 +24,8 @@ const resolvers = {
       const { payload, status, code } = tokenPayload;
       const { conversationId } = args;
       const userId = payload?.userId;
+
+      console.log(tokenPayload);
       /**
        * authentication check
        */
@@ -76,6 +78,8 @@ const resolvers = {
       const { code, payload, status } = tokenPayload;
       const userId = payload?.userId;
 
+      console.log(args);
+
       //authorization check & check if senderId is math with current user Id
       if (code !== 200 || userId !== senderId)
         throw new GraphQLError('Not Authorized:' + status);
@@ -85,12 +89,26 @@ const resolvers = {
         const newMessage = await prisma.message.create({
           data: {
             id: messageId,
-            senderId,
             body,
             conversationId,
+            senderId,
           },
           include: messagePopulated,
         });
+
+        //find conversation participant
+
+        const participant = await prisma.conversationParticipant.findFirst({
+          where: {
+            conversationId,
+            userId,
+          },
+        });
+
+        if (!participant)
+          throw new GraphQLError(
+            'sending message went wrong: find participant error'
+          );
 
         //update conversation
 
@@ -103,7 +121,7 @@ const resolvers = {
             participants: {
               update: {
                 where: {
-                  id: senderId,
+                  id: participant.id,
                 },
                 data: {
                   hasSeenLatestMassage: true,
@@ -121,6 +139,7 @@ const resolvers = {
               },
             },
           },
+          include: conversationPopulated,
         });
 
         pubSub.publish('MESSAGE_SENT', { messageSent: newMessage });
@@ -148,6 +167,7 @@ const resolvers = {
           context: GraphQLContext
         ) => {
           return payload.messageSent.conversationId === args.conversationId;
+          // return true;
         }
       ),
     },

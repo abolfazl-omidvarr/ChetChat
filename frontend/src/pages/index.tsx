@@ -7,8 +7,6 @@ import { useRouter } from 'next/navigation';
 import { Chat, Auth } from '@/components';
 import { useCallback, useEffect, useState } from 'react';
 import ConversationModal from '@/components/Chat/Modal/ConversationModal/ConversationModal';
-import { getAccessToken, setAccessToken } from '@/libs/AccessToken';
-
 import { store } from '@/redux/Store';
 import authSlice from '@/redux/authSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -105,16 +103,9 @@ const Home: NextPage = () => {
   ) : (
     <>
       <Box>
-        {token && username ? (
-          <Chat at={getAccessToken()} />
-        ) : (
-          <Auth
-            at={getAccessToken()}
-            reloadSession={reloadSession}
-          />
-        )}
+        {token && username ? <Chat /> : <Auth reloadSession={reloadSession} />}
       </Box>
-      <ConversationModal at={getAccessToken()} />
+      <ConversationModal />
     </>
   );
 };

@@ -18,7 +18,7 @@ const resolvers = {
       context: GraphQLContext
     ) => {
       // : Promise<Array<ConversationPopulated>>
-      console.log('in convo');
+      // console.log('in convo');
       const { prisma, res } = context;
       const { code, payload } = res?.locals.tokenPayload;
       if (code !== 200) {

@@ -26,6 +26,4 @@ export const sendRefreshToken = (res: Response, token: string) => {
 export const userIsConversationParticipant = (
   participants: Array<ParticipantPopulated>,
   userId: string
-): boolean => {
-  return participants.some((participant) => participant.id === userId);
-};
+): boolean => participants.some((participant) => participant.userId === userId);
