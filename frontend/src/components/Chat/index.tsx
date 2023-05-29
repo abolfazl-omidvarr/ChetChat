@@ -17,11 +17,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCallback } from 'react';
 import userOperations from '@/graphql/operations/user';
 
-interface ChatProps {
-  at: string;
-}
+interface ChatProps {}
 
-const Chat: React.FC<ChatProps> = ({ at }) => {
+const Chat: React.FC<ChatProps> = ({}) => {
   const [test, { data, loading, error }] = useLazyQuery<testData, testInput>(
     testOperations.Queries.test,
     { fetchPolicy: 'no-cache' }

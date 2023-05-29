@@ -18,6 +18,7 @@ import { RiLogoutBoxLine } from 'react-icons/ri';
 import { CgProfile } from 'react-icons/cg';
 import { useRouter, useSearchParams } from 'next/navigation';
 import userOperations from '@/graphql/operations/user';
+import SkeletonLoader from '@/components/Common/Skeleton';
 
 interface ConversationWrapperProps {}
 
@@ -110,12 +111,11 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({}) => {
 
       <Box className='h-[calc(100vh - 1rem)] overflow-y-auto'>
         {conversationsLoading ? (
-          <div className='w-full h-full grid justify-center items-center'>
-            <MoonLoader
-              size={50}
-              color='#becbc8'
-            />
-          </div>
+          <SkeletonLoader
+            count={5}
+            width='full'
+            height='80px'
+          />
         ) : (
           <ConversationList conversations={conversationsData?.conversations} />
         )}

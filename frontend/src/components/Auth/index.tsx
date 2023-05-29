@@ -8,11 +8,10 @@ import LogIn from './LogIn';
 import { useDispatch, useSelector } from 'react-redux';
 
 interface AuthProps {
-  at: string | null;
   reloadSession: () => void;
 }
 
-const Auth: React.FC<AuthProps> = ({ at, reloadSession }) => {
+const Auth: React.FC<AuthProps> = ({ reloadSession }) => {
   const [logIn, setLogIn] = useState(false);
   const dispatch = useDispatch();
   const token = useSelector((state: any) => state.auth.token);

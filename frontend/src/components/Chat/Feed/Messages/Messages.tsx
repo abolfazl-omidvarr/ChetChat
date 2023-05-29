@@ -3,6 +3,7 @@ import { MessagesData, MessagesVariables } from '@/util/types';
 import messageOperations from '@/graphql/operations/message';
 import { useQuery } from '@apollo/client';
 import { toast } from 'react-hot-toast';
+import SkeletonLoader from '@/components/Common/Skeleton';
 
 interface MessagesProps {
   userId: string;
@@ -20,20 +21,25 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
       toast.error(message);
     },
   });
-
-  console.log(data);
+  
+  if (error) return null;
 
   return (
     <Flex className='flex-col justify-end overflow-hidden'>
       {loading && (
-        <Stack>
-          <span>LOADING MESSAGES</span>
+        <Stack className='gap-3 px-4'>
+          <SkeletonLoader
+            count={5}
+            width='full'
+            height='50px'
+            mb='0'
+          />
         </Stack>
       )}
       {data?.messages && (
         <Flex className='flex-col-reverse overflow-auto h-full'>
           {data.messages.map((msg) => (
-            <div>{msg.body}</div>
+            <div key={msg.body}>{msg.body}</div>
             // <MessageItem />
           ))}
         </Flex>

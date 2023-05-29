@@ -71,8 +71,6 @@ const main = async () => {
         tokenPayload,
         req: null,
         res: null,
-        //@ts-ignore
-        kosher: 'hello',
       };
     }
 
@@ -83,8 +81,6 @@ const main = async () => {
       tokenPayload: { code: 403, payload: null, status: 'Not authorized' },
       req: null,
       res: null,
-      //@ts-ignore
-      kosher: 'hello',
     };
   };
 

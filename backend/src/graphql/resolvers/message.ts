@@ -24,6 +24,8 @@ const resolvers = {
       const { payload, status, code } = tokenPayload;
       const { conversationId } = args;
       const userId = payload?.userId;
+
+      console.log(tokenPayload);
       /**
        * authentication check
        */
@@ -75,6 +77,8 @@ const resolvers = {
       const { body, conversationId, id: messageId, senderId } = args;
       const { code, payload, status } = tokenPayload;
       const userId = payload?.userId;
+
+      console.log(args);
 
       //authorization check & check if senderId is math with current user Id
       if (code !== 200 || userId !== senderId)
