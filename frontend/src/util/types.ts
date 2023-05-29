@@ -96,8 +96,17 @@ export interface ConversationCreatedSubscriptionData {
 export interface MessagesData {
   messages: Array<MessagePopulated>;
 }
+
 export interface MessagesVariables {
   conversationId: string;
+}
+
+export interface MessageSubscriptionData {
+  subscriptionData: {
+    data: {
+      messageSent: MessagePopulated;
+    };
+  };
 }
 
 //////////////////////////////////////test

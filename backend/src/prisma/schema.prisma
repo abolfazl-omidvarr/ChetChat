@@ -89,7 +89,7 @@ model Message {
   conversationId String        @db.ObjectId
   conversation   Conversation  @relation(fields: [conversationId], references: [id])
   senderId       String        @db.ObjectId
-  sender         User          @relation(fields: [conversationId], references: [id])
+  sender         User          @relation(fields: [senderId], references: [id])
   isLatestIn     Conversation? @relation(name: "latestMessage")
   body           String
 }
