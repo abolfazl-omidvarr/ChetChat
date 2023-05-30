@@ -18,6 +18,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
   isSelected,
   hasSeenLatestMassage,
 }) => {
+  console.log(hasSeenLatestMassage);
   const searchParams = useSearchParams();
   const conversationName =
     conversation?.name ||
@@ -39,7 +40,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
       }
       items-center
       `}>
-      {hasSeenLatestMassage && (
+      {!hasSeenLatestMassage && (
         <Box className='absolute top-1 left-1'>
           <FaDotCircle color='#00ff00aa' />
         </Box>

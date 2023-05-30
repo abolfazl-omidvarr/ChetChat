@@ -2,7 +2,6 @@ import { Avatar, Box, Stack, Flex, Text } from '@chakra-ui/react';
 import { MessagePopulated } from '../../../../../../backend/src/util/types';
 import { formatRelative } from 'date-fns';
 import enUS from 'date-fns/locale/en-US';
-import { Yesteryear } from 'next/font/google';
 
 interface MessageItemProps {
   message: MessagePopulated;

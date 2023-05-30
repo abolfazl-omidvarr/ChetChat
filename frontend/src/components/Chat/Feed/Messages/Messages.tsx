@@ -85,8 +85,6 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
               sentByCurrentUser={msg.sender.id === userId}
             />
           ))}
-
-          {/* <MessageItem /> */}
         </Flex>
       )}
     </Flex>
