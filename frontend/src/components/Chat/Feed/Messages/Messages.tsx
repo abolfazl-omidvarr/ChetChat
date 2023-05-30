@@ -8,13 +8,15 @@ import messageOperations from '@/graphql/operations/message';
 import { useQuery } from '@apollo/client';
 import { toast } from 'react-hot-toast';
 import SkeletonLoader from '@/components/Common/Skeleton';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import MessageItem from './MessageItem';
 
 interface MessagesProps {
   userId: string;
   conversationId: string;
 }
 const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { data, loading, error, subscribeToMore } = useQuery<
     MessagesData,
     MessagesVariables
@@ -39,7 +41,10 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
         const newMessage = subscriptionData.data.messageSent;
 
         return Object.assign({}, prev, {
-          messages: [newMessage, ...prev.messages],
+          messages:
+            newMessage.sender.id === userId
+              ? [...prev.messages]
+              : [newMessage, ...prev.messages],
         });
       },
     });
@@ -51,10 +56,11 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
     return () => unsubscribe();
   }, [conversationId]);
 
-  // useEffect(() => {
-  //   if (!messagesEndRef.current || !data) return;
-  //   messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  // }, [data, messagesEndRef.current]);
+  useEffect(() => {
+    if (!messagesEndRef.current || !data) return;
+    console.log('in use ef');
+    messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [data, messagesEndRef.current]);
 
   if (error) return null;
 
@@ -73,9 +79,14 @@ const Messages: React.FC<MessagesProps> = ({ userId, conversationId }) => {
       {data?.messages && (
         <Flex className='flex-col-reverse overflow-auto h-full'>
           {data.messages.map((msg) => (
-            <div key={msg.body}>{msg.body}</div>
-            // <MessageItem />
+            <MessageItem
+              key={msg.id}
+              message={msg}
+              sentByCurrentUser={msg.sender.id === userId}
+            />
           ))}
+
+          {/* <MessageItem /> */}
         </Flex>
       )}
     </Flex>

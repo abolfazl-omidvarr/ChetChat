@@ -42,6 +42,11 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({}) => {
     },
   });
 
+  // const onViewConversation = async (conversation: string) => {
+
+  //   router.push
+  // };
+
   const subscribeToNewConversations = () => {
     subscribeToMore({
       document: conversationOperations.Subscriptions.conversationCreated,

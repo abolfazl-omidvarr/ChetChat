@@ -167,7 +167,6 @@ const resolvers = {
           context: GraphQLContext
         ) => {
           return payload.messageSent.conversationId === args.conversationId;
-          // return true;
         }
       ),
     },

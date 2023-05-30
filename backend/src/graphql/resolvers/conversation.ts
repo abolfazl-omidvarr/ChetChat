@@ -3,11 +3,8 @@ import {
   ConversationPopulated,
   GraphQLContext,
   ParticipantPopulated,
-  createUsernameResponse,
 } from '../../util/types';
-import bcrypt from 'bcrypt';
 import { GraphQLError } from 'graphql';
-import { getServerSession } from 'next-auth';
 import { withFilter } from 'graphql-subscriptions';
 
 const resolvers = {
@@ -105,6 +102,52 @@ const resolvers = {
         );
       }
     },
+    markConversationAsRead: async (
+      _parent: any,
+      args: { conversationId: string; userId: string },
+      context: GraphQLContext
+    ): Promise<boolean> => {
+      const { prisma, tokenPayload } = context;
+      const { conversationId, userId: reqUserId } = args;
+      const { code, status, payload } = tokenPayload;
+      if (code !== 200)
+        throw new GraphQLError('Not authorized to perform this action');
+
+      const userId = payload.userId;
+
+      try {
+        const participant = await prisma.conversationParticipant.findFirst({
+          where: {
+            conversationId,
+            userId,
+          },
+        });
+
+        //always exist but being safe is no harm
+        if (!participant)
+          throw new GraphQLError(
+            'error in marking conversation as read function: participant find error'
+          );
+
+        await prisma.conversationParticipant.update({
+          where: {
+            id: participant.id,
+          },
+          data: {
+            hasSeenLatestMassage: true,
+          },
+        });
+        
+        return true;
+      } catch (error: any) {
+        console.log('markConversationAsRead:', error?.message);
+        throw new GraphQLError(
+          'error in marking conversation as read function'
+        );
+      }
+
+      return true;
+    },
   },
   Subscription: {
     conversationCreated: {
@@ -125,11 +168,11 @@ const resolvers = {
             throw new GraphQLError('Not authorized: ' + tokenPayload.status);
           }
 
-          const userId = tokenPayload.payload!.userId;      //   headers: {
-            //     'Content-Type': 'application/x-www-form-urlencoded',
-            //   },
-            // });
-            //@ts-ignore
+          const userId = tokenPayload.payload!.userId; //   headers: {
+          //     'Content-Type': 'application/x-www-form-urlencoded',
+          //   },
+          // });
+          //@ts-ignore
 
           const {
             conversationCreated: { participants },

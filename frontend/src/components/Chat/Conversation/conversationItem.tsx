@@ -1,25 +1,22 @@
 'use client';
 import { Box, Stack, Text, Avatar, Flex } from '@chakra-ui/react';
-import ConversationList from './ConversationList';
-import { useQuery } from '@apollo/client';
-import conversationOperations from '@/graphql/operations/conversation';
-import { ConversationData } from '@/util/types';
-import { MoonLoader } from 'react-spinners';
 import { ConversationPopulated } from '../../../../../backend/src/util/types';
-import { format, formatDistanceToNowStrict } from 'date-fns';
-import { useRouter, useSearchParams } from 'next/navigation';
-import qs from 'querystring';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { useSearchParams } from 'next/navigation';
+import { FaDotCircle } from 'react-icons/fa';
 
 interface ConversationItemProps {
   conversation: ConversationPopulated;
   onClickConversation: () => void;
   isSelected: boolean;
+  hasSeenLatestMassage: boolean | undefined;
 }
 
 const ConversationItem: React.FC<ConversationItemProps> = ({
   onClickConversation,
   conversation,
   isSelected,
+  hasSeenLatestMassage,
 }) => {
   const searchParams = useSearchParams();
   const conversationName =
@@ -37,13 +34,20 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
     <Stack
       onClick={onClickConversation}
       direction='row'
-      className={`p-3 my-2 cursor-pointer hover:bg-white/20 rounded-md w-full ${
+      className={`p-3 my-2 cursor-pointer hover:bg-white/20 rounded-md w-full relative ${
         isSelected && 'bg-white/20'
-      }`}>
+      }
+      items-center
+      `}>
+      {hasSeenLatestMassage && (
+        <Box className='absolute top-1 left-1'>
+          <FaDotCircle color='#00ff00aa' />
+        </Box>
+      )}
       <Avatar size='md' />
       <Box width='full'>
         <Flex className='items-center justify-between whitespace-nowrap w-full'>
-          <Text className='font-semibold  xl:w-[12vw] lg:w-[16vw] w-[18vw] overflow-hidden text-ellipsis'>
+          <Text className='font-semibold  xl:w-[12vw] md:w-[16vw] w-[65vw] overflow-hidden text-ellipsis'>
             {conversationName}
           </Text>
           <Text className='text-[0.75rem] text-neutral-500 whitespace-nowrap'>
@@ -51,7 +55,7 @@ const ConversationItem: React.FC<ConversationItemProps> = ({
           </Text>
         </Flex>
 
-        <Text className='text-neutral-400 text-sm'>
+        <Text className='text-neutral-400 text-sm whitespace-nowrap xl:w-[12vw] md:w-[16vw] w-[70vw] overflow-hidden text-ellipsis'>
           {conversationLatestMessage}
         </Text>
       </Box>

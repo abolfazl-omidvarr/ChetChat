@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { sendMessageArgument } from '../../../../../../backend/src/util/types';
 import { useSelector } from 'react-redux';
 import { ObjectId } from 'bson';
+import { MessagesData } from '@/util/types';
 
 interface MessageInputProps {
   conversationId: string;
@@ -13,6 +14,7 @@ interface MessageInputProps {
 
 const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) => {
   const userId = useSelector((state: any) => state.auth.userId);
+  const username = useSelector((state: any) => state.auth.username);
   const [messageBody, setMessageBody] = useState('');
   const [sendMessage] = useMutation<
     { sendMessage: boolean },
@@ -25,8 +27,6 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) => {
     try {
       /// send mutation
 
-      console.log(userId)
-
       const messageId = new ObjectId().toString();
       const newMessage: sendMessageArgument = {
         id: messageId,
@@ -37,10 +37,41 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) => {
 
       const { data, errors } = await sendMessage({
         variables: { ...newMessage },
+        optimisticResponse: {
+          sendMessage: true,
+        },
+        update: (cache) => {
+          const existing = cache.readQuery<MessagesData>({
+            query: messageOperations.Queries.messages,
+            variables: { conversationId },
+          }) as MessagesData;
+
+          cache.writeQuery<MessagesData, { conversationId: string }>({
+            query: messageOperations.Queries.messages,
+            variables: { conversationId },
+            data: {
+              ...existing,
+              messages: [
+                {
+                  id: messageId,
+                  body: messageBody,
+                  senderId: userId,
+                  conversationId,
+                  sender: {
+                    id: userId,
+                    username: username,
+                  },
+                  createdAt: new Date(Date.now()),
+                  updatedAt: new Date(Date.now()),
+                },
+                ...existing.messages,
+              ],
+            },
+          });
+        },
       });
 
-      console.log(data);
-      console.log(errors);
+      setMessageBody('');
 
       if (!data?.sendMessage || errors)
         throw new Error('failed to send the message');
@@ -49,6 +80,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ conversationId }) => {
       toast.error(error?.message);
     }
   };
+
   return (
     <Box className='p-6 w-full'>
       <form onSubmit={onSubmitHandler}>
