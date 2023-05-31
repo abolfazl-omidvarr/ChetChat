@@ -1,5 +1,6 @@
 import { Prisma, User } from '@prisma/client';
 import {
+  ConversationPopulated,
   GraphQLContext,
   MessagePopulated,
   MessageSentSubscriptionPayload,
@@ -78,74 +79,91 @@ const resolvers = {
       const { code, payload, status } = tokenPayload;
       const userId = payload?.userId;
 
-      console.log(args);
-
       //authorization check & check if senderId is math with current user Id
       if (code !== 200 || userId !== senderId)
         throw new GraphQLError('Not Authorized:' + status);
 
-      try {
-        //create a message
-        const newMessage = await prisma.message.create({
-          data: {
-            id: messageId,
-            body,
-            conversationId,
-            senderId,
-          },
-          include: messagePopulated,
-        });
-
-        //find conversation participant
-
-        const participant = await prisma.conversationParticipant.findFirst({
-          where: {
-            conversationId,
-            userId,
-          },
-        });
-
-        if (!participant)
-          throw new GraphQLError(
-            'sending message went wrong: find participant error'
-          );
-
-        //update conversation
-
-        const conversation = await prisma.conversation.update({
-          where: {
-            id: conversationId,
-          },
-          data: {
-            latestMessageId: newMessage.id,
-            participants: {
-              update: {
-                where: {
-                  id: participant.id,
-                },
-                data: {
-                  hasSeenLatestMassage: true,
-                },
+      let newMessageObj: MessagePopulated;
+      let conversationObj: ConversationPopulated;
+      async function performTransaction() {
+        try {
+          await prisma.$transaction(async (transaction) => {
+            //create a message
+            const newMessage = await prisma.message.create({
+              data: {
+                id: messageId,
+                body,
+                conversationId,
+                senderId,
               },
-              updateMany: {
-                where: {
-                  NOT: {
-                    userId: senderId,
+              include: messagePopulated,
+            });
+
+            //find conversation participant
+
+            const participant = await prisma.conversationParticipant.findFirst({
+              where: {
+                conversationId,
+                userId,
+              },
+            });
+
+            if (!participant)
+              throw new GraphQLError(
+                'sending message went wrong: find participant error'
+              );
+
+            //update conversation
+
+            const conversation = await prisma.conversation.update({
+              where: {
+                id: conversationId,
+              },
+              data: {
+                latestMessageId: newMessage.id,
+                participants: {
+                  update: {
+                    where: {
+                      id: participant.id,
+                    },
+                    data: {
+                      hasSeenLatestMassage: true,
+                    },
+                  },
+                  updateMany: {
+                    where: {
+                      NOT: {
+                        userId: senderId,
+                      },
+                    },
+                    data: {
+                      hasSeenLatestMassage: false,
+                    },
                   },
                 },
-                data: {
-                  hasSeenLatestMassage: false,
-                },
               },
-            },
-          },
-          include: conversationPopulated,
-        });
+              include: conversationPopulated,
+            });
+            newMessageObj = newMessage;
+            conversationObj = conversation;
+          });
 
-        pubSub.publish('MESSAGE_SENT', { messageSent: newMessage });
-        pubSub.publish('CONVERSATION_UPDATED', {
-          conversationUpdated: conversation,
-        });
+          pubSub.publish('MESSAGE_SENT', { messageSent: newMessageObj });
+
+          pubSub.publish('CONVERSATION_UPDATED', {
+            conversationUpdated: conversationObj,
+          });
+
+          console.log('Transaction completed successfully');
+        } catch (error) {
+          console.error('Transaction failed', error);
+        } finally {
+          // await prisma.$disconnect();
+        }
+      }
+
+      try {
+        await performTransaction();
       } catch (error: any) {
         console.log('send message error: ', error?.message);
         throw new GraphQLError('send message error: ' + error?.message);

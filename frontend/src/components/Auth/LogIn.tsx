@@ -16,7 +16,6 @@ import {
 import userOperations from '@/graphql/operations/user';
 import { toast } from 'react-hot-toast';
 import { RiDatabase2Fill } from 'react-icons/ri';
-import { getAccessToken, setAccessToken } from '@/libs/AccessToken';
 import { useDispatch, useSelector } from 'react-redux';
 import authSlice from '@/redux/authSlice';
 import { useRouter } from 'next/navigation';
@@ -125,7 +124,7 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
       </Button>
 
       <Text className='text-sm py-2'>
-        Don't have an account?
+        Don&apos;t have an account?
         <span
           onClick={() => setLogin(false)}
           className='hover:underline ml-1 cursor-pointer'>
@@ -134,7 +133,6 @@ const LogIn: React.FC<LogInProps> = ({ login, setLogin, reloadSession }) => {
       </Text>
     </>
   );
-
 };
 
 export default LogIn;

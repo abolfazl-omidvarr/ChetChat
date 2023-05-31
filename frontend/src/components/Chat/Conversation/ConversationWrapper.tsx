@@ -1,11 +1,12 @@
 'use client';
 import { Box, Button, IconButton, Stack, Text } from '@chakra-ui/react';
 import ConversationList from './ConversationList';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery, useSubscription } from '@apollo/client';
 import conversationOperations from '@/graphql/operations/conversation';
 import {
   ConversationCreatedSubscriptionData,
   ConversationData,
+  ConversationUpdatedData,
   LogOutData,
 } from '@/util/types';
 import { MoonLoader } from 'react-spinners';
@@ -27,10 +28,6 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({}) => {
   const { onOpen } = useConversationModal();
   const router = useRouter();
 
-  const [logOut, { loading: logOutLoading }] = useMutation<LogOutData, {}>(
-    userOperations.Mutations.logOut
-  );
-
   const {
     data: conversationsData,
     loading: conversationsLoading,
@@ -41,6 +38,10 @@ const ConversationWrapper: React.FC<ConversationWrapperProps> = ({}) => {
       toast.error(message);
     },
   });
+
+  const [logOut, { loading: logOutLoading }] = useMutation<LogOutData, {}>(
+    userOperations.Mutations.logOut
+  );
 
   const subscribeToNewConversations = () => {
     subscribeToMore({

@@ -200,9 +200,8 @@ const resolvers = {
           const userId = tokenPayload.payload!.userId;
 
           const {
-            conversationUpdated: {
-              conversation: { participants },
-            },
+            //@ts-ignore
+            conversationUpdated: { participants },
           } = payload;
 
           return userIsConversationParticipant(participants, userId);

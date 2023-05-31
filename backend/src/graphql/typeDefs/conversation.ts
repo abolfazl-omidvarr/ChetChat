@@ -21,9 +21,9 @@ const typeDefs = gql`
     updatedAt: Date
   }
 
-  type ConversationUpdatedSubscriptionPayload {
-    conversation: Conversation
-  }
+  # type ConversationUpdatedSubscriptionPayload {
+  #   conversation: Conversation
+  # }
 
   type Participant {
     id: String
@@ -38,7 +38,7 @@ const typeDefs = gql`
     conversationCreated: Conversation
   }
   type Subscription {
-    conversationUpdated: ConversationUpdatedSubscriptionPayload
+    conversationUpdated: Conversation
   }
 `;
 

@@ -87,10 +87,18 @@ export interface ConversationData {
 export interface ConversationCreatedSubscriptionData {
   subscriptionData: {
     data: {
-      conversationCreated: ConversationPopulated;
+      conversationCreated: Omit<
+        ConversationPopulated,
+        'latestMessage' & { latestMessage: MessagePopulated }
+      >;
     };
   };
 }
+
+export interface ConversationUpdatedData {
+  conversationUpdated: ConversationPopulated;
+}
+
 //////////////////////////////////////message
 
 export interface MessagesData {

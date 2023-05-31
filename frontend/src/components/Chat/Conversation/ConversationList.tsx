@@ -10,7 +10,8 @@ import { Fragment, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { conversationOperations } from '@/graphql/operations';
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useSubscription } from '@apollo/client';
+import { ConversationUpdatedData } from '@/util/types';
 
 interface ConversationListProps {
   conversations: Array<ConversationPopulated> | undefined;
@@ -23,10 +24,33 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const router = useRouter();
   const userId = useSelector((state: any) => state.auth.userId);
 
+  const selectedConversationId = qs.parse(
+    searchParams.toString()
+  ).conversationId;
+
   const [markConversationAsRead] = useMutation<
     { markConversationAsRead: boolean },
     { userId: string; conversationId: string }
   >(conversationOperations.Mutations.markConversationAsRead);
+
+  useSubscription<ConversationUpdatedData>(
+    conversationOperations.Subscriptions.conversationUpdated,
+    {
+      onData: ({ client, data }) => {
+        const { data: subscriptionData } = data;
+
+        console.log(data);
+
+        if (!subscriptionData) return;
+        const {
+          conversationUpdated: { id: updatedConversationId },
+        } = subscriptionData;
+
+        const currentlyViewingConversation =
+          updatedConversationId === selectedConversationId;
+      },
+    }
+  );
 
   const onConversationClickHandler = useCallback(
     async (
@@ -119,10 +143,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
             hasSeenLatestMassage={participant?.hasSeenLatestMassage}
             conversation={conversation}
             key={conversation.id}
-            isSelected={
-              qs.parse(searchParams.toString()).conversationId ===
-              conversation.id
-            }
+            isSelected={selectedConversationId === conversation.id}
           />
         );
       })}
