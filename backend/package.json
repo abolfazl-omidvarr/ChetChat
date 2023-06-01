@@ -5,7 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "nodemon src/index.ts",
-    "prisma": "prisma generate --schema=src/prisma/schema.prisma"
+    "prisma": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +23,6 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
-  "type": "module",
   "dependencies": {
     "@apollo/server": "^4.7.1",
     "@graphql-tools/schema": "^10.0.0",

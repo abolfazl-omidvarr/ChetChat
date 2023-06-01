@@ -85,85 +85,149 @@ const resolvers = {
 
       let newMessageObj: MessagePopulated;
       let conversationObj: ConversationPopulated;
-      async function performTransaction() {
-        try {
-          await prisma.$transaction(async (transaction) => {
-            //create a message
-            const newMessage = await prisma.message.create({
-              data: {
-                id: messageId,
-                body,
-                conversationId,
-                senderId,
-              },
-              include: messagePopulated,
-            });
+      // async function performTransaction() {
+      //   try {
+      //     await prisma.$transaction(async (transaction) => {
+      //       //create a message
+      //       const newMessage = await transaction.message.create({
+      //         data: {
+      //           id: messageId,
+      //           body,
+      //           conversationId,
+      //           senderId,
+      //         },
+      //         include: messagePopulated,
+      //       });
 
-            //find conversation participant
+      //       //find conversation participant
 
-            const participant = await prisma.conversationParticipant.findFirst({
-              where: {
-                conversationId,
-                userId,
-              },
-            });
+      //       const participant =
+      //         await transaction.conversationParticipant.findFirst({
+      //           where: {
+      //             conversationId,
+      //             userId,
+      //           },
+      //         });
 
-            if (!participant)
-              throw new GraphQLError(
-                'sending message went wrong: find participant error'
-              );
+      //       if (!participant)
+      //         throw new GraphQLError(
+      //           'sending message went wrong: find participant error'
+      //         );
 
-            //update conversation
+      //       //update conversation
 
-            const conversation = await prisma.conversation.update({
-              where: {
-                id: conversationId,
-              },
-              data: {
-                latestMessageId: newMessage.id,
-                participants: {
-                  update: {
-                    where: {
-                      id: participant.id,
-                    },
-                    data: {
-                      hasSeenLatestMassage: true,
-                    },
-                  },
-                  updateMany: {
-                    where: {
-                      NOT: {
-                        userId: senderId,
-                      },
-                    },
-                    data: {
-                      hasSeenLatestMassage: false,
-                    },
-                  },
-                },
-              },
-              include: conversationPopulated,
-            });
-            newMessageObj = newMessage;
-            conversationObj = conversation;
-          });
+      //       const conversation = await transaction.conversation.update({
+      //         where: {
+      //           id: conversationId,
+      //         },
+      //         data: {
+      //           latestMessageId: newMessage.id,
+      //           participants: {
+      //             update: {
+      //               where: {
+      //                 id: participant.id,
+      //               },
+      //               data: {
+      //                 hasSeenLatestMassage: true,
+      //               },
+      //             },
+      //             updateMany: {
+      //               where: {
+      //                 NOT: {
+      //                   userId: senderId,
+      //                 },
+      //               },
+      //               data: {
+      //                 hasSeenLatestMassage: false,
+      //               },
+      //             },
+      //           },
+      //         },
+      //         include: conversationPopulated,
+      //       });
+      //       newMessageObj = newMessage;
+      //       conversationObj = conversation;
+      //     });
 
-          pubSub.publish('MESSAGE_SENT', { messageSent: newMessageObj });
+      //     pubSub.publish('MESSAGE_SENT', { messageSent: newMessageObj });
 
-          pubSub.publish('CONVERSATION_UPDATED', {
-            conversationUpdated: conversationObj,
-          });
+      //     pubSub.publish('CONVERSATION_UPDATED', {
+      //       conversationUpdated: conversationObj,
+      //     });
 
-          console.log('Transaction completed successfully');
-        } catch (error) {
-          console.error('Transaction failed', error);
-        } finally {
-          // await prisma.$disconnect();
-        }
-      }
+      //     console.log('Transaction completed successfully');
+      //   } catch (error) {
+      //     console.error('Transaction failed', error);
+      //   } finally {
+      //     // await prisma.$disconnect();
+      //   }
+      // }
 
       try {
-        await performTransaction();
+        // await performTransaction();
+
+        //create a message
+        const newMessage = await prisma.message.create({
+          data: {
+            id: messageId,
+            body,
+            conversationId,
+            senderId,
+          },
+          include: messagePopulated,
+        });
+
+        //find conversation participant
+
+        const participant = await prisma.conversationParticipant.findFirst({
+          where: {
+            conversationId,
+            userId,
+          },
+        });
+
+        if (!participant)
+          throw new GraphQLError(
+            'sending message went wrong: find participant error'
+          );
+
+        //update conversation
+
+        const conversation = await prisma.conversation.update({
+          where: {
+            id: conversationId,
+          },
+          data: {
+            latestMessageId: newMessage.id,
+            participants: {
+              update: {
+                where: {
+                  id: participant.id,
+                },
+                data: {
+                  hasSeenLatestMassage: true,
+                },
+              },
+              updateMany: {
+                where: {
+                  NOT: {
+                    userId: senderId,
+                  },
+                },
+                data: {
+                  hasSeenLatestMassage: false,
+                },
+              },
+            },
+          },
+          include: conversationPopulated,
+        });
+
+        pubSub.publish('MESSAGE_SENT', { messageSent: newMessage });
+
+        pubSub.publish('CONVERSATION_UPDATED', {
+          conversationUpdated: conversation,
+        });
       } catch (error: any) {
         console.log('send message error: ', error?.message);
         throw new GraphQLError('send message error: ' + error?.message);

@@ -27,7 +27,7 @@ import {
   TokenPayload,
 } from './util/types';
 import { PrismaClient, User } from '@prisma/client';
-import prisma from './prisma/prisma';
+import prisma from '../prisma/prisma';
 import { isAuthMiddleWare, isAuthSubscription } from './middleWare/isAuth';
 import cookieParser from 'cookie-parser';
 import qs from 'querystring';

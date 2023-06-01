@@ -1,6 +1,11 @@
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // If you want to use Prisma Migrate, you will need to manually create a shadow database
+  // https://neon.tech/docs/guides/prisma-migrate#configure-a-shadow-database-for-prisma-migrate
+  // make sure to append ?connect_timeout=10 to the connection string
+  // shadowDatabaseUrl = env(“SHADOW_DATABASE_URL”)
 }
 
 generator client {
@@ -9,7 +14,7 @@ generator client {
 }
 
 model User {
-  id                      String                    @id @default(auto()) @map("_id") @db.ObjectId
+  id                      String                    @id @default(cuid()) @map("_id")
   name                    String?
   email                   String?                   @unique
   username                String?                   @unique
@@ -24,34 +29,34 @@ model User {
 }
 
 model Conversation {
-  id              String                    @id @default(auto()) @map("_id") @db.ObjectId
+  id              String                    @id @default(cuid()) @map("_id")
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
   participants    ConversationParticipant[]
   Message         Message[]
-  latestMessageId String?                   @unique @db.ObjectId
+  latestMessageId String?                   @unique
   latestMessage   Message?                  @relation(name: "latestMessage", fields: [latestMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   name            String?
 }
 
 model ConversationParticipant {
-  id                   String       @id @default(auto()) @map("_id") @db.ObjectId
+  id                   String       @id @default(cuid()) @map("_id")
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
   user                 User         @relation(fields: [userId], references: [id])
-  userId               String       @db.ObjectId
+  userId               String
   conversation         Conversation @relation(fields: [conversationId], references: [id])
-  conversationId       String       @db.ObjectId
+  conversationId       String
   hasSeenLatestMassage Boolean      @default(false)
 }
 
 model Message {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  id             String        @id @default(cuid()) @map("_id")
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
-  conversationId String        @db.ObjectId
+  conversationId String
   conversation   Conversation  @relation(fields: [conversationId], references: [id])
-  senderId       String        @db.ObjectId
+  senderId       String
   sender         User          @relation(fields: [senderId], references: [id])
   isLatestIn     Conversation? @relation(name: "latestMessage")
   body           String
